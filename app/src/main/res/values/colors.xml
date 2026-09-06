@@ -1,0 +1,7 @@
+<resources>
+    <!-- Seule couleur définie en ressource XML : elle sert au fond de fenêtre, qui est
+         appliqué par le système avant que Compose ne s'affiche. Toutes les autres
+         couleurs de l'application vivent dans core/designsystem/AstroPalette.kt.
+         Valeur alignée sur AstroNightPalette.skyTop. -->
+    <color name="window_background">#FF05070F</color>
+</resources>

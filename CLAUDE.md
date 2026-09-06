@@ -1,0 +1,452 @@
+# CLAUDE.md — Projet Astro
+
+Fichier de référence du projet. À maintenir à jour à chaque décision technique.
+
+## 1. Décisions techniques (validées par l'utilisateur le 2026-09-06)
+
+| Sujet | Décision | Statut |
+|---|---|---|
+| Plateforme cible | Android | Validé |
+| Plateforme secondaire | Aucune pour l'instant (PC écarté) | Validé |
+| Langage / UI | Kotlin + Jetpack Compose | Validé |
+| Priorité | Android d'abord | Validé |
+| Stockage | Local d'abord, derrière une abstraction permettant un cloud ultérieur | Validé |
+| Authentification | Aucune au départ. Interface `AuthService` prévue, implémentation locale | Validé |
+| Bibliothèque 3D | AUCUNE. Le dodécaèdre est dessiné en Compose Canvas (20 sommets, 30 arêtes) | Décidé |
+| Direction artistique | Deux ambiances, design system maison, zéro dépendance graphique | Validé |
+
+## 2. Environnement de développement (vérifié le 2026-09-06)
+
+- Répertoire projet : `/mnt/c/Users/cgill/astro` (= `C:\Users\cgill\astro`)
+- Shell agent : WSL2 Ubuntu. Interop vers Windows : **fonctionnel**.
+- Android Studio : `AI-261.23567.138` (2026.1.1), JDK 21 embarqué (`.../Android Studio/jbr`).
+- Android SDK : `C:\Users\cgill\AppData\Local\Android\Sdk` — plateformes `android-36.1`
+  et `android-37.0`, build-tools `36.1.0` et `37.0.0`, `platform-tools` (adb), licences acceptées.
+- `cmdline-tools` révision 23.0 installés manuellement dans `Sdk/cmdline-tools/latest`.
+  Attention : `sdkmanager` y est **déprécié** au profit de la CLI `android` (même dossier).
+- Piège `cmd.exe` : les `;` d'un nom de paquet SDK sont interprétés comme des séparateurs
+  d'arguments. Passer par un fichier `.bat` intermédiaire, pas par `cmd.exe /c "..."`.
+- AGP télécharge lui-même les plateformes manquantes, les licences étant acceptées —
+  c'est ainsi qu'`android-37.0` a été obtenue lors du passage à `compileSdk 37`.
+- Émulateur : image `system-images;android-36.1;google_apis_playstore;x86_64` (2,4 Go),
+  AVD **`Astro_Pixel8_API36`** (profil Pixel 8), défini dans `C:\Users\cgill\.android\avd`.
+  Image Play Store retenue pour disposer des services Google et du moteur de synthèse
+  vocale Google, utiles aux fonctionnalités vocales.
+- Pas de `sudo` sans mot de passe dans WSL. Pas de `java`, `gradle`, `adb` côté WSL.
+- **La compilation se fait côté Windows** (`gradlew.bat` via `cmd.exe`), jamais dans WSL.
+  Motif : JDK et SDK sont côté Windows, et seul Windows pilote l'émulateur ou un téléphone USB.
+- Le projet a été généré par l'assistant Android Studio puis déplacé depuis
+  `AndroidStudioProjects\astro`. Les caches `.gradle` et `.idea` de l'ancien chemin
+  ont été supprimés (chemins absolus obsolètes). Ils se régénèrent à l'ouverture.
+
+## 2 bis. Versions en place (générées par le template, vérifiées le 2026-09-06)
+
+| Composant | Version | Origine |
+|---|---|---|
+| AGP | 9.2.1 | template Android Studio |
+| Kotlin | 2.2.10 | template Android Studio |
+| Gradle (wrapper) | 9.4.1 | template Android Studio |
+| Compose BOM | 2026.08.00 | relevé Google Maven |
+| androidx core-ktx | 1.19.0 | relevé Google Maven |
+| androidx lifecycle (runtime + viewmodel-compose) | 2.11.0 | relevé Google Maven |
+| androidx activity-compose | 1.13.0 | relevé Google Maven |
+| androidx navigation-compose | 2.10.0 | relevé Google Maven |
+| androidx datastore-preferences | 1.2.1 | relevé Google Maven |
+| kotlinx-coroutines-test | 1.11.0 | relevé Maven Central |
+
+AGP, Kotlin et Gradle sont laissés aux versions du template : les monter change le DSL
+de build et se traite comme une étape à part entière, pas en passant.
+
+Configuration du module `:app` : `namespace`/`applicationId` = `com.astro.app`,
+`minSdk = 26`, `targetSdk = 36`, `compileSdk = 37`, Kotlin DSL,
+catalogue de versions dans `gradle/libs.versions.toml`.
+
+**Règle : toute dépendance passe par `gradle/libs.versions.toml`.** Aucune version
+écrite en dur dans un `build.gradle.kts`.
+
+**`compileSdk` est à 37 et non 36** : les versions androidx ci-dessus l'exigent
+(erreur de build explicite sinon). `targetSdk` reste à 36, car le monter change le
+comportement d'exécution de l'application et doit être testé sur appareil séparément.
+
+## 3. Règles de développement obligatoires
+
+1. **150 lignes maximum par fichier source.** Jamais de code compressé artificiellement pour tenir.
+   Si un fichier dépasse : découper par responsabilité, pas raccourcir les noms.
+2. **Aucune donnée inventée.** Pas d'API, de comportement, de champ ou de valeur non vérifié.
+   Si une information manque : le signaler explicitement, ne pas combler.
+3. **Aucune donnée métier ni configuration en dur.** Couleurs, phrases, textes, signes,
+   libellés, seuils : tout vient de la configuration, de la base ou des préférences utilisateur.
+4. **Tout est activable/désactivable** depuis les Paramètres, et l'état est persisté.
+5. **Vérification après chaque étape importante** : le projet compile, rien n'est cassé, tests lancés.
+   Ne jamais continuer silencieusement après une erreur : signaler problème, cause, tentative, solution.
+
+## 4. Architecture
+
+Module unique `:app` au départ, avec séparation stricte par packages.
+Extraction en modules Gradle possible plus tard sans réécriture.
+
+```
+app/src/main/java/<pkg>/
+  core/
+    config/        constantes centralisées, registre des fonctionnalités
+    data/          DataStore (préférences), Room (phrases, manifestations), repositories
+    domain/        interfaces : AuthService, SpeechService, TtsService, AstroDataSource
+    ui/            thème, composants partagés
+  feature/
+    home/  astrology/  phrases/  calendar/  settings/  manifestation/
+  navigation/      graphe de navigation, dérivé du registre de fonctionnalités
+```
+
+Règle : une fonctionnalité = un package `feature/<nom>` + une entrée dans le registre.
+Ajouter une fonctionnalité ne doit modifier aucun fichier existant hors du registre.
+
+## 5. Pages (6) et points d'entrée depuis la Home
+
+Barre de navigation basse à 5 boutons (d'après la maquette `maquette astro base.png`) :
+`Home` · `astrologie` · `histor. phrase` · `J/S M/A` (calendrier) · `paramètres`.
+
+| Page | Entrée depuis la Home | Maquettée |
+|---|---|---|
+| Home | — | Oui |
+| Astrologie | la Lune | Oui |
+| Historique des phrases | la phrase du jour | Oui |
+| Calendrier | le calendrier | Non |
+| Paramètres | le Soleil | Oui |
+| Manifestation | le dodécaèdre 3D | Non |
+
+Comportement Retour : le bouton/geste Retour d'Android ramène toujours sur Home.
+Quitter le Calendrier réinitialise son affichage en mode Jour.
+### Calendrier — règle de swipe (précisée par l'utilisateur le 2026-09-06)
+
+Séquence : Jour → Semaine → Mois → Année.
+
+**3 swipes rapides dans une fenêtre de 1500 ms** font passer au niveau suivant.
+Mesure de la fenêtre : entre le premier et le dernier swipe de la salve.
+
+Décisions complémentaires, prises faute de spécification et faciles à inverser :
+- 3 swipes rapides dans le sens opposé reviennent au niveau précédent (sans quoi,
+  arrivé à Année, on ne peut plus redescendre sans quitter la page) ;
+- pas de bouclage : à Année on reste à Année, à Jour on reste à Jour ;
+- un swipe en sens inverse annule la salve en cours ;
+- un déclenchement remet le compteur à zéro : 6 swipes rapides valent 2 changements.
+
+Valeurs dans `core/config/CalendarConfig.kt`, jamais dans l'écran.
+Règle isolée dans `CalendarSwipeDetector`, sans dépendance à Android ni à l'horloge
+(l'instant est fourni par l'appelant), donc couverte par des tests unitaires JVM.
+
+## 5 bis. Page d'accueil — composition
+
+Trois couches superposées :
+1. `CelestialBackground` — dégradé de ciel, halos, étoiles ;
+2. `DayBeadLayer` — les deux billes-journées ;
+3. `HomeShortcuts` — Lune, capsule « Phrase du jour », dodécaèdre, Soleil.
+
+Les positions viennent de `core/config/HomeLayoutConfig.kt`, en **fractions d'écran** :
+`centerX` et `radius` sont des fractions de la largeur, `centerY` de la hauteur. Une
+valeur hors de [0, 1] place volontairement un élément partiellement hors écran.
+
+Chaque raccourci n'apparaît que si sa fonctionnalité est activée : couper l'Astrologie
+fait disparaître la Lune, pas seulement l'entrée de la barre de navigation.
+
+### Billes-journées
+
+Une **bille-journée** est une sphère qui porte une période et son planning. Ce n'est
+ni une carte ni un bouton : halo qui la décolle du fond, contour en dégradé qui suggère
+la courbure, intérieur à peine plus clair que le ciel. Son contenu vit à l'intérieur
+d'elle, donc elle est cliquable dans son ensemble, texte compris.
+
+Une bille peut être plus grande que l'écran et déborder — c'est ce qui donne la
+profondeur. Son contenu est donc ancré en fractions de son diamètre
+(`PRIMARY_CONTENT_X/Y`, `SECONDARY_CONTENT_X/Y`) pour rester dans la partie visible :
+le centre géométrique d'une bille n'est pas au centre de ce que l'utilisateur voit.
+
+Aucune date n'est écrite dans l'interface : tout dérive du curseur temporel.
+Appuyer sur une bille ouvre le planning de SA date, transmise par l'argument de route.
+
+### Le dodécaèdre
+
+**Trois comportements distincts :**
+- un **appui** ouvre la page Manifestation ;
+- un **maintien long** ramène la navigation temporelle sur la journée en cours, sans
+  changer de temporalité ;
+- **rester appuyé emballe le solide** : rotation multipliée par
+  `SOLID_BOOST_FACTOR` (×20) et entrée en jeu d'un troisième axe, le roulis, à l'arrêt
+  au repos. L'emballement se prolonge `SOLID_BOOST_TAIL_MILLIS` (3 s) après le
+  relâchement, puis redescend. Les deux transitions passent par une rampe : sans elle,
+  le saut de 1× à 20× serait un à-coup, en contradiction avec le reste des animations.
+
+**Pourquoi une rotation pilotée image par image.** `rememberInfiniteTransition` a une
+durée figée et ne peut pas changer de vitesse en cours de route. `rememberSolidRotation`
+intègre donc l'angle à chaque image à partir du temps écoulé : la rotation reste
+continue quand la vitesse varie, sans saut d'angle au moment du changement. C'est le raccourci qui permet de rentrer après s'être éloigné
+  dans le temps, sans revenir swipe par swipe. Un retour haptique confirme le geste :
+  l'écran change peu, rien d'autre ne signalerait qu'il a été pris en compte.
+
+La date du jour est **injectée** dans `HomeViewModel` (`today: () -> LocalDate`) plutôt
+que lue directement : sans cela le retour à aujourd'hui dépendrait de l'horloge système
+et ne serait pas testable.
+
+**Deux axes sont animés**, à des périodes non multiples l'une de l'autre (26 s et 41 s) :
+le mouvement ne se répète jamais à l'identique et toutes les faces finissent par se
+présenter. Avec un seul axe animé et une inclinaison figée, la figure se lisait comme
+une image plate qui pivote — c'était le défaut corrigé le 2026-09-06.
+
+La projection est **perspective** et non orthographique : les sommets proches sont plus
+écartés que les lointains. Les mathématiques sont dans `DodecahedronProjection.kt`,
+séparées du composant — calculer et dessiner sont deux responsabilités distinctes.
+
+## 5 quater. Navigation temporelle
+
+**Deux gestes, à ne jamais confondre :**
+
+| Geste | Où | Effet |
+|---|---|---|
+| Un swipe simple | Home | Déplace le curseur DANS la temporalité courante |
+| Maintien long sur le dodécaèdre | Home | Ramène le curseur sur la journée en cours |
+| Salve de 3 swipes rapides | Calendrier | CHANGE de temporalité |
+
+Cette séparation est structurelle : `TimeCursor.previous()/next()` d'un côté,
+`TimeCursor.withScale()` de l'autre, et deux détecteurs distincts.
+
+`core/time/` porte le tout — placé dans `core` et non dans le Calendrier, parce que la
+Home s'en sert aussi :
+
+| Fichier | Rôle |
+|---|---|
+| `TimeScale.kt` | Jour → Semaine → Mois → Année |
+| `TimeCursor.kt` | Position dans le temps, avec normalisation de l'ancre |
+| `PeriodLabels.kt` | Libellés d'une période, dans la langue résolue |
+| `SwipeBurstDetector.kt` | Règle des 3 swipes rapides |
+| `SwipeDirection.kt` | Sens d'un geste, en intention |
+
+**Normalisation de l'ancre** : `TimeCursor` ramène toujours la date au DÉBUT de la
+période — lundi, premier du mois, premier janvier. Sans cela, « mois précédent » depuis
+le 31 mars donnerait le 28 février et l'aller-retour ne reviendrait pas au point de
+départ. Un test le vérifie explicitement.
+
+Convention de sens, appliquée partout (`onHorizontalSwipe`) : glisser vers la **droite**
+va vers le passé, comme on retourne une page en arrière ; vers la **gauche**, vers l'avenir.
+
+## 5 quinquies. Planning
+
+`PlanningRepository` (interface) + `DataStorePlanningRepository` (local). La clé est la
+date en **ISO 8601** : format stable et indépendant de la langue, donc un utilisateur qui
+change la langue de son téléphone ne perd rien.
+
+La route est paramétrée (`planning/{date}`) et la date arrive au ViewModel par
+`SavedStateHandle`. Enregistrement automatique après 600 ms de pause de frappe : ni
+bouton, ni écriture disque à chaque touche.
+
+## 5 ter. Direction artistique et design system
+
+**Règle fondatrice, posée par l'utilisateur le 2026-09-06 :** la maquette définit
+*quoi* afficher et *où* se trouvent les interactions. Elle ne définit pas *comment*
+l'application doit apparaître. Ne jamais reproduire la maquette telle quelle.
+
+### Univers
+
+Spatial, astral, mystique mais moderne. Élégant, jamais enfantin. Sobriété assumée :
+peu d'étoiles, peu d'effets, peu d'animations, mais soignés.
+
+### Deux ambiances
+
+L'ambiance n'est pas un réglage d'écran : elle est **déclarée dans le catalogue**
+(`FeatureDefinition.ambiance`), au même endroit que le reste de la définition d'une page.
+
+| Ambiance | Pages | Palette |
+|---|---|---|
+| `DARK` | Home, Calendrier, Paramètres | `AstroNightPalette` — « Nuit profonde » |
+| `LIGHT` | Astrologie, Phrases, Manifestation | `AstroDawnPalette` — « Aube céleste » |
+
+La nuit n'est pas un fond noir : c'est un bleu très désaturé qui se réchauffe vers le
+bas, comme un horizon. L'aube n'est pas un fond blanc : c'est un crème chaud qui
+bascule vers un lavande pâle — l'inverse exact, la lumière venant du haut.
+
+Le passage d'une ambiance à l'autre est un **fondu** : chaque couleur est animée
+séparément (`animateColorAsState`), barre de navigation comprise.
+
+### Structure du design system — `core/designsystem/`
+
+| Fichier | Rôle |
+|---|---|
+| `AstroPalette.kt` | Rôles de couleur + les deux palettes. **Seul endroit où une couleur est écrite.** |
+| `AstroTypography.kt` | Familles de polices et hiérarchie typographique |
+| `AstroDimens.kt` | Espacements, rayons, épaisseurs de trait, tailles d'icône |
+| `AstroMotion.kt` | Durées, courbes, spécifications d'animation réutilisables |
+| `AstroTheme.kt` | Locals, bascule d'ambiance, alimentation de `MaterialTheme` |
+| `components/` | `CelestialBackground`, `AstroScreen`, `AstroCard`, `AstroNavBar`, `SectionLabel`, `screenReveal` |
+
+Les composants ne demandent jamais une couleur : ils demandent un **rôle**. Les deux
+palettes exposent les mêmes rôles, donc aucun composant ne sait s'il est en clair ou
+en sombre. Ajouter une palette = ajouter une instance, aucun écran à modifier.
+
+**Contrôle automatisable :** `grep -rn "Color(0x" app/src/main/java --include=*.kt`
+ne doit rien retourner hors de `core/designsystem`.
+
+Exception unique : `res/values/colors.xml` définit `window_background`, appliqué par le
+système avant que Compose ne s'affiche. Sans lui, un fond blanc apparaît au lancement
+et transparaît derrière la barre de navigation. Sa valeur suit `AstroNightPalette.skyTop`.
+
+### Typographie
+
+- **Cormorant Garamond** — titres. Serif à fort contraste, évoque les planches
+  d'astronomie anciennes. Réservé aux grandes tailles : ses déliés sont fragiles en petit corps.
+- **Space Grotesk** — interface et texte courant. Grotesque moderne, dessiné pour l'écran.
+
+Les deux sont sous **SIL Open Font License 1.1** (copies dans `assets/licenses/`),
+**embarquées dans l'APK** : aucun téléchargement à l'exécution, donc aucune police qui
+change après coup. Ce sont des polices **variables** — les graisses viennent de l'axe
+`wght`, ce qui évite un fichier par graisse.
+
+`labelSmall` sert d'exergue : petites capitales très espacées, précédées d'un filet
+(`SectionLabel`). C'est le motif récurrent qui rattache les écrans entre eux, et le
+seul endroit où l'on emploie des capitales.
+
+### Animation
+
+Trois règles : rien ne bouge vite ; le mouvement d'ambiance est à peine perceptible ;
+une réaction à un geste est immédiate. Durées centralisées dans `AstroMotion` —
+ralentir toute l'application se fait là.
+
+### Dépendances graphiques
+
+**Aucune bibliothèque graphique, d'animation ou 3D n'a été ajoutée**, alors que
+l'autorisation était donnée. Motifs vérifiés au cas par cas :
+- une bibliothèque 3D pour un solide en rotation lente serait disproportionnée, et le
+  rendu au Canvas est déjà satisfaisant et sans coût de démarrage ;
+- Lottie supposerait des fichiers d'animation que le projet n'a pas : l'ajouter
+  n'apporterait rien tant qu'aucun asset n'existe ;
+- les polices téléchargeables (`ui-text-google-fonts`) introduiraient une dépendance
+  réseau à l'exécution là où l'embarquement est plus fiable ;
+- `Modifier.blur` n'existe qu'à partir de l'API 31, alors que le projet vise l'API 26 :
+  les halos sont donc des dégradés radiaux, qui fonctionnent partout et coûtent moins.
+
+Cette décision est à revoir si un besoin réel apparaît, pas par principe.
+
+### Pièges rencontrés, à ne pas réintroduire
+
+- Un halo dessiné plus grand que le cadre d'un composant **découpé en cercle** est
+  tranché net et se lit comme un disque. Le dégradé doit s'éteindre au bord du cadre.
+- Un croissant de lune se construit par **soustraction de chemins**
+  (`PathOperation.Difference`), pas par remplissage pair-impair : ce dernier peint la
+  différence symétrique, donc la part du disque d'ombre qui déborde est peinte aussi
+  et la figure devient un anneau.
+
+## 6. Limitations connues — à ne jamais présenter comme résolues
+
+1. **Import d'une voix** : le moteur de synthèse vocale Android n'accepte pas un fichier audio
+   importé comme voix. Réellement possible : choisir parmi les voix installées, installer un
+   moteur TTS tiers, ou un service cloud de clonage vocal (payant). Choix non tranché.
+2. **Voix masculine / féminine** : Android n'expose pas le genre d'une voix de façon fiable.
+   Conception retenue : lister les voix réellement disponibles, l'utilisateur assigne
+   lui-même une voix au libellé « masculine » et une au libellé « féminine ».
+3. **API horoscope avec notes /5 (amitié, amour, travail)** : aucune API gratuite fiable
+   confirmée à ce jour. À tester par requêtes réelles avant toute promesse.
+   Interdiction de convertir un texte d'horoscope en note /5 sans règle définie et validée.
+4. **Soleil / Lune** : lever/coucher du soleil et phases de lune sont calculables localement
+   (calcul déterministe, pas de donnée inventée). Lever/coucher de lune : à trancher après
+   vérification. Source à rendre configurable dans tous les cas.
+
+## 7. Vérification
+
+Compilation (depuis WSL), **commande vérifiée le 2026-09-06** :
+`cmd.exe /c "cd /d C:\Users\cgill\astro && gradlew.bat assembleDebug"`
+
+Dernier résultat constaté (2026-09-06, squelette modulaire en place) : `BUILD SUCCESSFUL`,
+APK de 13 Mo dans `app/build/outputs/apk/debug/app-debug.apk`,
+**34 tests unitaires exécutés, 0 échec, 0 erreur, 0 ignoré**.
+Contrôle de la limite de 150 lignes : fichier le plus long = 105 lignes.
+
+### Vérifications à l'exécution (émulateur, 2026-09-06)
+
+Effectuées sur `Astro_Pixel8_API36`, application installée et pilotée par `adb` :
+
+- démarrage sans plantage (aucune trace dans `logcat -b crash`) ;
+- barre basse à 5 entrées, Manifestation accessible uniquement depuis la Home ;
+- Accueil et Paramètres absents de la liste des interrupteurs (non désactivables) ;
+- désactivation d'une fonctionnalité : disparition immédiate de la barre basse ET de la
+  Home, dans la même session, sans redémarrage ;
+- persistance vérifiée sur deux fonctionnalités coupées, après `am force-stop` puis relance ;
+- seules les clés réellement modifiées sont écrites dans le DataStore : les valeurs par
+  défaut ne sont pas persistées, conformément à l'intention ;
+- bouton Retour : ramène sur la Home depuis les Paramètres et depuis le Calendrier ;
+- Calendrier : 3 swipes rapides enchaînés font passer Jour → Semaine, **un seul**
+  changement pour la salve ; sortie puis retour sur la page repartent bien en mode Jour.
+
+Méthode de lecture du DataStore : `adb exec-out run-as com.astro.app cat
+files/datastore/astro_settings.preferences_pb`. **Ne pas utiliser `adb shell`** pour
+lire un binaire : la traduction `\n` → `\r\n` insère des octets et corrompt le fichier lu.
+
+Point à surveiller : lors d'une première passe de tests menée sans réinitialisation
+préalable, une lecture du DataStore a montré un état incohérent avec les gestes effectués.
+Quatre séquences contrôlées ultérieures (`pm clear` puis gestes tracés un à un) n'ont
+pas reproduit l'anomalie et ont toutes donné le résultat attendu. Cause non établie,
+donc ni corrigée ni écartée : à revérifier si le symptôme réapparaît.
+Prérequis : Android Studio fermé (il verrouille les fichiers et le démon Gradle).
+Tests : `gradlew.bat test` (unitaires), `gradlew.bat connectedAndroidTest` (instrumentés, device requis).
+
+Démarrage de l'émulateur (depuis WSL) :
+`"$SDK/emulator/emulator.exe" -avd Astro_Pixel8_API36` (à lancer en arrière-plan)
+Attente du démarrage : boucler sur `adb shell getprop sys.boot_completed` jusqu'à `1`.
+`adb wait-for-device` rend la main alors que l'appareil est encore `offline` : insuffisant.
+Installation : `adb install -r app\build\outputs\apk\debug\app-debug.apk`
+
+## 8. Hors crédit
+
+Ce qui n'a pas été fait, et pourquoi. À traiter avant de considérer une section terminée.
+
+### Points ambigus — décision prise par défaut, à confirmer
+
+Pour chacun, une logique a été mise en place pour que l'application fonctionne, mais
+elle n'a **pas** été validée par l'utilisateur. Ne pas la traiter comme acquise.
+
+1. **Période portée par la bille secondaire.** Rien ne dit quelle date elle représente.
+   Choix appliqué : la période **suivante**. L'alternative — la précédente — se change
+   dans `DayBeadLayer` en remplaçant `cursor.next()` par `cursor.previous()`.
+2. **Sens des swipes sur la Home.** Seul « revenir à la période précédente » a été
+   spécifié. Choix appliqué : droite = passé, gauche = avenir. Le sens « avant » n'a
+   jamais été demandé explicitement.
+3. **Placement de la bille secondaire.** La maquette montre deux cercles partiellement
+   visibles, un coupé par le haut et un par la droite. Une seule bille secondaire étant
+   demandée, celle du bord droit a été retenue et repositionnée en `(0.92, 0.60)` pour
+   que sa date reste lisible. Ce n'est pas la position exacte de la maquette.
+4. **Cercle coupé par le haut : non rendu.** Deux billes seulement étaient demandées.
+5. **Choix de la temporalité sur la Home.** Rien n'indique comment l'utilisateur passe
+   de Jour à Semaine depuis la Home. Le curseur y est donc figé sur `TimeScale.DAY`.
+   Le Calendrier a sa propre temporalité, qui se réinitialise en sortant de la page —
+   les deux ne sont **pas** reliées, faute de spécification.
+6. **Notes /5 de la page Astrologie.** La maquette indique « l'amour, l'argent,
+   l'amitié » ; le cahier des charges dit « amitié, amour, travail ». Contradiction non
+   tranchée, rien n'a été codé.
+
+### Non implémenté
+
+- Contenu réel des 5 sections : Astrologie, Phrases, Manifestation restent des écrans
+  d'attente ; Calendrier n'affiche pas encore de grille.
+- **APIs horoscope, lune et soleil** : aucune n'a été testée par requête réelle. Aucune
+  API gratuite fournissant les trois notes /5 n'est confirmée à ce jour.
+- **Sources de données** de la phrase du jour et de l'heure du réveil : inexistantes,
+  les deux affichent un état vide.
+- **Compte utilisateur** : ni authentification, ni e-mail, ni mot de passe.
+- **Couleurs des planètes** : le réglage (une couleur par jour, ou semaine/week-end)
+  n'est pas implémenté. Les accents viennent de la palette du design system, qui est
+  l'endroit prévu pour le brancher.
+- **Signe astrologique par défaut** et ses deux modes de sélection.
+- **Voix** : ni import, ni dictée, ni lecture. La limitation technique sur l'import
+  d'une voix (section 6) reste entière et non tranchée.
+- Aucun **test instrumenté** n'a été écrit : les vérifications d'interface ont été
+  faites à la main sur l'émulateur, par captures d'écran.
+
+### Vérifié partiellement
+
+- **Facteur d'accélération du dodécaèdre (×20)** : implémenté et centralisé, mais **non
+  mesuré**. Deux captures `adb screencap` consécutives sont espacées de plusieurs
+  centaines de millisecondes ; à cette cadence, tout indicateur de différence de pixels
+  sature aussi bien au repos qu'à l'accélération. Le comportement a été constaté à
+  l'œil sur les images, pas quantifié. À juger sur appareil réel.
+
+### Vérifié seulement sur émulateur
+
+Tout le rendu et toutes les interactions ont été validés sur `Astro_Pixel8_API36`.
+**Rien n'a été vérifié sur un appareil réel** — ni les performances des animations, ni
+le confort réel des gestes de swipe, ni le rendu des polices sur un écran physique.

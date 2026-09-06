@@ -1,0 +1,54 @@
+<resources>
+    <!-- Tous les libellés visibles passent par ce fichier : aucun texte d'interface
+         n'est écrit dans le code Kotlin. Une traduction se fait en ajoutant un
+         values-<langue>/strings.xml ET en déclarant la langue dans LocaleConfig. -->
+    <string name="app_name">Astro</string>
+
+    <!-- Noms des fonctionnalités, référencés par le catalogue -->
+    <string name="feature_home">Accueil</string>
+    <string name="feature_astrology">Astrologie</string>
+    <string name="feature_phrases">Phrases</string>
+    <string name="feature_calendar">Calendrier</string>
+    <string name="feature_settings">Paramètres</string>
+    <string name="feature_manifestation">Manifestation</string>
+    <string name="feature_planning">Planning</string>
+
+    <!-- Exergues de section, en tête de chaque écran -->
+    <string name="astrology_overline">Ciel du jour</string>
+    <string name="phrases_overline">Journal</string>
+    <string name="manifestation_overline">Intentions</string>
+    <string name="calendar_overline">Cycles</string>
+    <string name="settings_overline">Réglages</string>
+
+    <!-- Sections en attente d'implémentation -->
+    <string name="placeholder_title">Section en construction</string>
+    <string name="placeholder_body">L\'ossature et la navigation sont en place. Le contenu sera ajouté lorsque sa source de données aura été définie et vérifiée.</string>
+
+    <!-- Page d'accueil -->
+    <string name="home_phrase_overline">Phrase du jour</string>
+    <string name="home_phrase_empty">Aucune phrase pour aujourd\'hui</string>
+    <string name="home_planning_title">Planning du jour</string>
+    <string name="home_planning_empty">Rien de prévu. Appuyez pour écrire.</string>
+    <string name="home_wake_time_label">Heure du réveil</string>
+    <string name="home_value_unset">—</string>
+
+    <!-- Descriptions pour l'accessibilité des éléments dessinés -->
+    <string name="cd_moon">La Lune : ouvrir l\'astrologie</string>
+    <string name="cd_sun">Le Soleil : ouvrir les paramètres</string>
+    <string name="cd_dodecahedron">Le dodécaèdre : ouvrir la manifestation</string>
+    <string name="cd_dodecahedron_long_press">Revenir à la journée en cours</string>
+
+    <!-- Paramètres -->
+    <string name="settings_features_title">Fonctionnalités affichées</string>
+
+    <!-- Planning d'une journée -->
+    <string name="planning_hint">Notez ce que vous prévoyez pour cette journée. L\'enregistrement est automatique.</string>
+    <string name="planning_placeholder">Votre planning…</string>
+
+    <!-- Calendrier -->
+    <string name="calendar_scale_day">Jour</string>
+    <string name="calendar_scale_week">Semaine</string>
+    <string name="calendar_scale_month">Mois</string>
+    <string name="calendar_scale_year">Année</string>
+    <string name="calendar_swipe_hint">3 swipes rapides pour changer de temporalité</string>
+</resources>
