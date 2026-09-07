@@ -308,6 +308,48 @@ Trois règles : rien ne bouge vite ; le mouvement d'ambiance est à peine percep
 une réaction à un geste est immédiate. Durées centralisées dans `AstroMotion` —
 ralentir toute l'application se fait là.
 
+### Matière plutôt que vectoriel
+
+Décision du 2026-09-07 : la Home ne doit plus se lire comme un assemblage de formes
+vectorielles. Les éléments décoratifs sont rendus comme des corps éclairés.
+
+**Ce qui reste vectoriel, volontairement** : les 5 pictogrammes de navigation, l'icône
+de l'application, et les surfaces qui portent du texte — capsule de la phrase du jour,
+barre de navigation, cartes. Ce sont des éléments d'interface, pas des objets célestes.
+
+**Une seule source de lumière** pour toute l'application, `AstroLight`, en haut à droite.
+C'est ce qui fait que la Lune, le Soleil, les billes et le solide appartiennent à la même
+scène. Un éclairage contradictoire entre deux astres se repère immédiatement.
+
+**Matières calculées, pas de fichiers image.** Les tuiles de grain et de poussière sont
+générées une fois puis répétées (`core/designsystem/texture/`). Ce choix n'est pas un
+pis-aller : une tuile calculée suit la palette de l'ambiance courante, se décline par
+graine — la matière d'une bille dérive de sa date — et n'ajoute aucun fichier au projet.
+Pour passer un jour à des ressources WebP, seul `TextureTiles.kt` serait à remplacer.
+
+**Pas de shader.** `RuntimeShader` exige l'API 33, le projet vise l'API 26 : il faudrait
+maintenir deux implémentations du même effet pour un résultat qu'une tuile en cache
+donne déjà. Aucun effet identifié ne le justifie aujourd'hui.
+
+**Dodécaèdre : faces pleines dessinées au Canvas.** Un moteur 3D pour un seul petit
+objet ajouterait une dépendance et une surface de rendu à intégrer dans la composition.
+Une série d'images pré-rendues figerait l'éclairage, ne suivrait pas la palette et
+pèserait en mémoire. Les 12 faces sont **déduites des normales** (permutations de
+(0, ±φ, ±1) — piège : ce ne sont PAS celles de (0, ±1, ±φ), qui donnent des sommets non
+coplanaires) et vérifiées par test.
+
+**Mesure de performance** (émulateur, 8 s, animations actives, 60 Hz) :
+
+| | Avant (vectoriel) | Après (matière) |
+|---|---|---|
+| Images saccadées | 1,63 % | 0,20 % |
+| Temps d'image médian | 23 ms | 21 ms |
+| 90e centile | 29 ms | 24 ms |
+| Mémoire PSS | 81,7 Mo | 90,9 Mo |
+
+La matière coûte 9 Mo et rend l'affichage plus rapide : les deux grands cercles tracés
+en contour coûtaient plus que les remplissages qui les remplacent.
+
 ### Dépendances graphiques
 
 **Aucune bibliothèque graphique, d'animation ou 3D n'a été ajoutée**, alors que
@@ -458,6 +500,12 @@ elle n'a **pas** été validée par l'utilisateur. Ne pas la traiter comme acqui
 - **Signe astrologique par défaut** et ses deux modes de sélection.
 - **Voix** : ni import, ni dictée, ni lecture. La limitation technique sur l'import
   d'une voix (section 6) reste entière et non tranchée.
+- **Ambiances claires non retouchées** : Astrologie, Phrases et Manifestation gardent
+  le rendu précédent. La refonte en matière s'est arrêtée à la Home, comme demandé,
+  pour validation avant d'aller plus loin.
+- **Aucune ressource WebP n'a été produite** : je n'ai aucun moyen de créer des images.
+  Les matières sont calculées. Si des textures peintes sont souhaitées, il faudra les
+  fournir — l'architecture les acceptera sans réécriture des écrans.
 - Aucun **test instrumenté** n'a été écrit : les vérifications d'interface ont été
   faites à la main sur l'émulateur, par captures d'écran.
 
