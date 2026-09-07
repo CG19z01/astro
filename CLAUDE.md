@@ -374,6 +374,49 @@ Cette décision est à revoir si un besoin réel apparaît, pas par principe.
   différence symétrique, donc la part du disque d'ombre qui déborde est peinte aussi
   et la figure devient un anneau.
 
+## 5 sexies. Éphémérides du Soleil et de la Lune
+
+**Les horaires se calculent à partir des COORDONNÉES, pas du fuseau horaire.** Le fuseau
+ne décide que de l'heure locale d'affichage. Deux villes du même fuseau mais à des
+longitudes différentes n'ont pas le même lever de soleil. C'est pourquoi les Paramètres
+demandent une latitude et une longitude, et non seulement un fuseau.
+
+Sans coordonnées renseignées, les cartes affichent un état vide. Aucune position par
+défaut n'est inventée : des horaires calculés pour un lieu arbitraire seraient faux tout
+en paraissant vrais.
+
+`core/astronomy/` — tout est calculé localement, aucun service interrogé :
+
+| Fichier | Rôle |
+|---|---|
+| `JulianDay.kt` | Conversion temps civil ↔ jour julien |
+| `SunPosition.kt` | Déclinaison, équation du temps, longitude apparente (NOAA) |
+| `SunCalculator.kt` | Lever, midi solaire, coucher, durée du jour |
+| `MoonPosition.kt` | Ascension droite, déclinaison, élongation (série tronquée de Meeus) |
+| `MoonCalculator.kt` | Lever et coucher par balayage de la hauteur, phase |
+
+**Vérification par propriétés physiques**, faute de pouvoir comparer à des éphémérides
+publiées depuis ce projet. Ces propriétés sont fortes : une erreur de modèle les casse.
+Soleil — symétrie autour du midi solaire, 12 h à l'équateur toute l'année, 12 h partout
+à l'équinoxe, jour et nuit polaires au-delà du cercle arctique, midi solaire à Greenwich
+à moins de 18 min de midi UTC. Lune — cycle des phases de 29,5 jours, **pleine lune qui
+se lève au coucher du soleil**, lever qui recule d'environ 50 min par jour.
+
+Contrôle externe ponctuel : Paris le 7 septembre 2026, lever 07:16 et coucher 20:21 en
+heure locale, à deux minutes près des valeurs réelles.
+
+Précisions assumées : environ une minute pour le Soleil, quelques minutes pour la Lune
+(série tronquée à neuf termes en longitude).
+
+`moonrise` ou `moonset` peuvent être nuls, **et ce n'est pas une anomalie** : la Lune se
+lève environ 50 min plus tard chaque jour, si bien qu'un jour sur vingt-cinq environ elle
+ne se lève pas, ou ne se couche pas, dans la journée civile.
+
+Piège corrigé le 2026-09-07 : un champ de saisie numérique ne doit jamais être lié
+directement à la valeur analysée. Dès « 48. » tapé, la valeur est reparsée puis
+réaffichée « 48.0 » et le point disparaît sous les doigts. Le texte saisi se mémorise à
+part de la valeur validée.
+
 ## 6. Limitations connues — à ne jamais présenter comme résolues
 
 1. **Import d'une voix** : le moteur de synthèse vocale Android n'accepte pas un fichier audio
@@ -484,6 +527,20 @@ elle n'a **pas** été validée par l'utilisateur. Ne pas la traiter comme acqui
 6. **Notes /5 de la page Astrologie.** La maquette indique « l'amour, l'argent,
    l'amitié » ; le cahier des charges dit « amitié, amour, travail ». Contradiction non
    tranchée, rien n'a été codé.
+
+### Décision en attente
+
+**Le Calendrier n'a aucun point d'entrée sur la page d'accueil.** La Home mène à
+l'Astrologie (Lune), aux Phrases (capsule), à la Manifestation (dodécaèdre) et aux
+Paramètres (Soleil) — mais le Calendrier n'existe que dans la barre de navigation.
+Or celle-ci est désormais masquable depuis les Paramètres : **barre masquée, le
+Calendrier devient inaccessible**.
+
+Rien n'a été fait de soi-même : ajouter un élément à la Home reviendrait à modifier une
+composition que l'utilisateur a demandé de ne pas déplacer arbitrairement. Trois issues
+possibles, à trancher : ajouter un point d'entrée sur la Home, rendre le Calendrier
+atteignable depuis un autre écran, ou empêcher de masquer la barre tant que le
+Calendrier est actif.
 
 ### Non implémenté
 

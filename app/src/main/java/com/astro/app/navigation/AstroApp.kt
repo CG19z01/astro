@@ -8,6 +8,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
@@ -20,6 +21,7 @@ import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.designsystem.LocalAstroPalette
 import com.astro.app.core.di.AppContainer
 import com.astro.app.core.settings.FeatureStates
+import com.astro.app.core.settings.UserPreferences
 
 /**
  * Racine de l'interface.
@@ -33,6 +35,8 @@ fun AstroApp(container: AppContainer, modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val states = container.settingsRepository.featureStates
         .collectAsState(initial = FeatureStates.defaults)
+    val preferences by container.settingsRepository.preferences
+        .collectAsState(initial = UserPreferences())
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     val ambiance = FeatureCatalog.definitionOfRouteOrNull(currentRoute)?.ambiance
         ?: FeatureCatalog.home.ambiance
@@ -47,11 +51,15 @@ fun AstroApp(container: AppContainer, modifier: Modifier = Modifier) {
             containerColor = Color.Transparent,
             contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0),
             bottomBar = {
-                AstroBottomBar(
-                    states = states.value,
-                    currentRoute = currentRoute,
-                    onSelect = navController::navigateToFeature,
-                )
+                // Barre masquable depuis les Paramètres : quand elle est retirée, la
+                // navigation passe entièrement par les éléments de la page d'accueil.
+                if (preferences.showNavigationBar) {
+                    AstroBottomBar(
+                        states = states.value,
+                        currentRoute = currentRoute,
+                        onSelect = navController::navigateToFeature,
+                    )
+                }
             },
         ) { innerPadding ->
             Box(modifier = Modifier.fillMaxSize()) {

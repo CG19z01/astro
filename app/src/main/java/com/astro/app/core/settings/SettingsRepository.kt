@@ -21,4 +21,15 @@ interface SettingsRepository {
      * Sans effet sur une fonctionnalité déclarée non désactivable dans le catalogue.
      */
     suspend fun setFeatureEnabled(id: FeatureId, enabled: Boolean)
+
+    /** Préférences hors activation, valeurs par défaut déjà appliquées. */
+    val preferences: Flow<UserPreferences>
+
+    /**
+     * Modifie les préférences à partir de leur valeur courante.
+     *
+     * Une transformation plutôt qu'un accesseur par champ : ajouter un réglage ne
+     * demande alors aucune modification de cette interface.
+     */
+    suspend fun updatePreferences(transform: (UserPreferences) -> UserPreferences)
 }

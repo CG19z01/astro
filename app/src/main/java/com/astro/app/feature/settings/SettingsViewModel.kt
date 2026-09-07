@@ -9,6 +9,7 @@ import com.astro.app.AstroApplication
 import com.astro.app.core.config.FeatureId
 import com.astro.app.core.settings.FeatureStates
 import com.astro.app.core.settings.SettingsRepository
+import com.astro.app.core.settings.UserPreferences
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -26,8 +27,19 @@ class SettingsViewModel(
             initialValue = FeatureStates.defaults,
         )
 
+    val preferences: StateFlow<UserPreferences> = repository.preferences
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            initialValue = UserPreferences(),
+        )
+
     fun setFeatureEnabled(id: FeatureId, enabled: Boolean) {
         viewModelScope.launch { repository.setFeatureEnabled(id, enabled) }
+    }
+
+    fun update(transform: (UserPreferences) -> UserPreferences) {
+        viewModelScope.launch { repository.updatePreferences(transform) }
     }
 
     companion object {

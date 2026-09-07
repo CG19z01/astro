@@ -45,6 +45,35 @@
     <string name="planning_hint">Notez ce que vous prévoyez pour cette journée. L\'enregistrement est automatique.</string>
     <string name="planning_placeholder">Votre planning…</string>
 
+    <!-- Paramètres : affichage -->
+    <string name="settings_display_title">Affichage</string>
+    <string name="settings_show_nav_bar">Barre de navigation</string>
+    <string name="settings_show_nav_bar_hint">Masquée, la navigation passe par les éléments de l\'accueil.</string>
+
+    <!-- Paramètres : lieu d'observation -->
+    <string name="settings_location_title">Lieu d\'observation</string>
+    <string name="settings_location_hint">Les horaires se calculent à partir des coordonnées. Le fuseau ne sert qu\'à les afficher à l\'heure locale.</string>
+    <string name="settings_location_missing">Renseignez une latitude et une longitude pour afficher les horaires.</string>
+    <string name="settings_latitude">Latitude</string>
+    <string name="settings_longitude">Longitude</string>
+    <string name="settings_zone">Fuseau horaire</string>
+    <string name="settings_zone_search">Rechercher</string>
+    <string name="action_close">Fermer</string>
+
+    <!-- Éphémérides -->
+    <string name="settings_sun_title">Soleil</string>
+    <string name="settings_moon_title">Lune</string>
+    <string name="ephemeris_sunrise">Lever</string>
+    <string name="ephemeris_noon">Midi solaire</string>
+    <string name="ephemeris_sunset">Coucher</string>
+    <string name="ephemeris_day_length">Durée du jour</string>
+    <string name="ephemeris_moonrise">Lever</string>
+    <string name="ephemeris_moonset">Coucher</string>
+    <string name="ephemeris_illumination">Éclairement</string>
+    <string name="ephemeris_phase">Phase</string>
+    <string name="ephemeris_waxing">Croissante</string>
+    <string name="ephemeris_waning">Décroissante</string>
+
     <!-- Calendrier -->
     <string name="calendar_scale_day">Jour</string>
     <string name="calendar_scale_week">Semaine</string>
