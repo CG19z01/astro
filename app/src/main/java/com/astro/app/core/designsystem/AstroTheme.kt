@@ -56,6 +56,7 @@ fun AstroTheme(ambiance: Ambiance, content: @Composable () -> Unit) {
 
 @Composable
 private fun AstroPalette.animated(): AstroPalette = copy(
+    space = fade(space, "space"),
     skyTop = fade(skyTop, "skyTop"),
     skyMid = fade(skyMid, "skyMid"),
     skyBottom = fade(skyBottom, "skyBottom"),

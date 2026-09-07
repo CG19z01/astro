@@ -16,6 +16,13 @@ import androidx.compose.ui.graphics.Color
 data class AstroPalette(
     val name: String,
     val isDark: Boolean,
+    /**
+     * Fond spatial uni. Employé tel quel, sans dégradé : c'est le noir profond de
+     * l'ambiance nocturne. Rôle distinct de [skyTop] et consorts, qui servent aussi
+     * aux billes, au solide 3D et à la barre de navigation — les confondre changerait
+     * ces éléments en même temps que le fond.
+     */
+    val space: Color,
     /** Dégradé de fond, du haut vers le bas. */
     val skyTop: Color,
     val skyMid: Color,
@@ -46,6 +53,7 @@ data class AstroPalette(
 val AstroNightPalette = AstroPalette(
     name = "Nuit profonde",
     isDark = true,
+    space = Color(0xFF030408),
     skyTop = Color(0xFF05070F),
     skyMid = Color(0xFF0B1024),
     skyBottom = Color(0xFF151A3A),
@@ -70,6 +78,8 @@ val AstroNightPalette = AstroPalette(
 val AstroDawnPalette = AstroPalette(
     name = "Aube céleste",
     isDark = false,
+    // L'ambiance claire garde son dégradé : ce rôle n'y sert pas de fond.
+    space = Color(0xFFFDF7F0),
     skyTop = Color(0xFFFDF7F0),
     skyMid = Color(0xFFF4EEF6),
     skyBottom = Color(0xFFE6E2F5),

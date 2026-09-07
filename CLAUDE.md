@@ -248,6 +248,31 @@ l'application doit apparaître. Ne jamais reproduire la maquette telle quelle.
 Spatial, astral, mystique mais moderne. Élégant, jamais enfantin. Sobriété assumée :
 peu d'étoiles, peu d'effets, peu d'animations, mais soignés.
 
+### Le fond
+
+**Ambiance nocturne : un noir uni, sans aucun dégradé** (demandé le 2026-09-07). Ni
+halos, ni nappe de poussière — ce sont des dégradés visibles, incompatibles avec l'espace
+profond recherché. Seul subsiste le grain, à la limite du perceptible, qui évite le
+banding d'un aplat sombre sur un écran.
+
+La couleur vient du rôle **`space`**, distinct de `skyTop` / `skyMid` / `skyBottom` :
+ces derniers servent aussi aux billes, au solide 3D et à la barre de navigation, et les
+détourner aurait changé ces éléments en même temps que le fond.
+
+**Ambiance claire : inchangée.** Elle garde son dégradé d'aube, ses halos et sa
+poussière. Le noir profond n'a de sens que pour la nuit ; l'appliquer partout aurait
+supprimé la seconde ambiance.
+
+**Champ d'étoiles** (`StarField`) : quinze au maximum, petites, d'éclat et de taille
+variables, réparties au hasard avec une graine fixe. Elles dérivent en sept à vingt
+minutes de traversée d'écran — le mouvement existe sans s'attraper du regard. Une étoile
+sortie par un bord revient par l'opposé, donc le ciel ne se vide jamais.
+
+Les positions sont intégrées image par image à partir du temps écoulé, comme la rotation
+du solide, et non animées entre deux bornes : une animation bouclée provoquerait un saut
+à sa reprise. Coût mesuré : 0,20 % d'images saccadées, médiane 22 ms, identique à la
+version précédente.
+
 ### Deux ambiances
 
 L'ambiance n'est pas un réglage d'écran : elle est **déclarée dans le catalogue**

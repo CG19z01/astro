@@ -6,10 +6,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -17,16 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.unit.dp
 import com.astro.app.core.designsystem.AstroMotion
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.designsystem.texture.rememberDustBrush
 import com.astro.app.core.designsystem.texture.rememberGrainBrush
-import kotlin.random.Random
-
-/** Peu d'étoiles, volontairement : le vide fait partie de la composition. */
-private const val STAR_COUNT = 22
-private const val STAR_SEED = 20260906L
 
 /** Intensités des matières. Volontairement très basses : elles se devinent, elles ne se voient pas. */
 private const val GRAIN_INTENSITY = 0.030f
@@ -35,20 +29,48 @@ private const val DUST_INTENSITY = 0.055f
 /** Agrandissement de la tuile de poussière : c'est lui qui la rend nuageuse. */
 private const val DUST_SCALE = 9f
 
+private const val HALO_ALPHA_LIGHT = 0.34f
+
 /**
- * Fond commun à tous les écrans, en quatre couches superposées :
+ * Fond commun à tous les écrans.
  *
- * 1. **couleur de base** — un dégradé profond, jamais un noir pur ;
- * 2. **grain** — bruit fin, à la limite du perceptible, qui enlève l'aspect « aplat » ;
- * 3. **poussière** — bruit fractal très étalé, qui crée des variations lumineuses larges ;
- * 4. **éléments spatiaux** — halos et quelques étoiles.
+ * **Ambiance nocturne : un noir uni, sans dégradé.** Ni halos, ni nappe de poussière —
+ * ce sont des dégradés visibles, et l'espace profond demandé n'en veut aucun. Seul
+ * subsiste le grain, à la limite du perceptible, qui évite le banding d'un aplat sombre
+ * sur un écran.
  *
- * Les deux couches de matière viennent de tuiles calculées puis répétées : elles
- * coûtent une image minuscule, s'adaptent à la palette de l'ambiance, et évitent
- * d'embarquer des fichiers de texture.
+ * **Ambiance claire : inchangée.** Elle garde son dégradé d'aube, ses halos et sa
+ * poussière : le noir profond n'a de sens que pour la nuit.
+ *
+ * Le champ d'étoiles est commun aux deux et dérive très lentement.
  */
 @Composable
 fun CelestialBackground(modifier: Modifier = Modifier) {
+    val palette = AstroTheme.palette
+    val grain = rememberGrainBrush(palette.star, GRAIN_INTENSITY)
+
+    Box(modifier = modifier.fillMaxSize()) {
+        if (palette.isDark) {
+            DeepSpace(color = palette.space, grain = grain)
+        } else {
+            DawnSky(grain = grain)
+        }
+        StarField(color = palette.star, dimmed = !palette.isDark)
+    }
+}
+
+/** Aplat sombre uniforme, relevé du seul grain. */
+@Composable
+private fun DeepSpace(color: Color, grain: ShaderBrush) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        drawRect(color = color)
+        drawRect(brush = grain)
+    }
+}
+
+/** Ciel d'aube : dégradé, halos qui respirent et poussière cosmique. */
+@Composable
+private fun DawnSky(grain: ShaderBrush) {
     val palette = AstroTheme.palette
     val transition = rememberInfiniteTransition(label = "ambient")
     val breath by transition.animateFloat(
@@ -60,14 +82,9 @@ fun CelestialBackground(modifier: Modifier = Modifier) {
         ),
         label = "breath",
     )
-    val grain = rememberGrainBrush(palette.star, GRAIN_INTENSITY)
     val dust = rememberDustBrush(palette.haloLunar, DUST_INTENSITY, seed = 7)
-    val stars = remember {
-        val random = Random(STAR_SEED)
-        List(STAR_COUNT) { Star(random.nextFloat(), random.nextFloat(), random.nextFloat(), random.nextFloat()) }
-    }
 
-    Canvas(modifier = modifier.fillMaxSize()) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
         drawRect(
             brush = Brush.verticalGradient(
                 0f to palette.skyTop,
@@ -75,17 +92,12 @@ fun CelestialBackground(modifier: Modifier = Modifier) {
                 1f to palette.skyBottom,
             ),
         )
-        drawHalo(palette.haloSolar, haloAlpha(palette.isDark), Offset(size.width * 0.86f, size.height * 0.14f), size.width * 0.78f * breath)
-        drawHalo(palette.haloLunar, haloAlpha(palette.isDark) * 0.8f, Offset(size.width * 0.08f, size.height * 0.74f), size.width * 0.92f * (2f - breath))
+        drawHalo(palette.haloSolar, HALO_ALPHA_LIGHT, Offset(size.width * 0.86f, size.height * 0.14f), size.width * 0.78f * breath)
+        drawHalo(palette.haloLunar, HALO_ALPHA_LIGHT * 0.8f, Offset(size.width * 0.08f, size.height * 0.74f), size.width * 0.92f * (2f - breath))
         drawTiled(dust, DUST_SCALE)
-        drawTiled(grain, 1f)
-        stars.forEach { drawStar(it, palette.star, palette.isDark) }
+        drawRect(brush = grain)
     }
 }
-
-private class Star(val x: Float, val y: Float, val size: Float, val brightness: Float)
-
-private fun haloAlpha(isDark: Boolean) = if (isDark) 0.20f else 0.34f
 
 /**
  * Applique une tuile répétée sur toute la surface.
@@ -94,10 +106,6 @@ private fun haloAlpha(isDark: Boolean) = if (isDark) 0.20f else 0.34f
  * fractal en nappe nuageuse, sans avoir à calculer une texture de la taille de l'écran.
  */
 private fun DrawScope.drawTiled(brush: ShaderBrush, magnification: Float) {
-    if (magnification == 1f) {
-        drawRect(brush = brush)
-        return
-    }
     scale(magnification, magnification, pivot = Offset.Zero) {
         drawRect(brush = brush, size = size / magnification)
     }
@@ -113,27 +121,4 @@ private fun DrawScope.drawHalo(color: Color, alpha: Float, center: Offset, radiu
         radius = radius,
         center = center,
     )
-}
-
-/**
- * Étoiles volontairement irrégulières : taille, opacité et halo varient. Une
- * distribution trop régulière se lit immédiatement comme un motif, pas comme un ciel.
- */
-private fun DrawScope.drawStar(star: Star, color: Color, isDark: Boolean) {
-    val center = Offset(star.x * size.width, star.y * size.height)
-    val radius = (0.4f + star.size * star.size * 1.9f).dp.toPx()
-    val alpha = (0.14f + star.brightness * 0.62f) * if (isDark) 1f else 0.6f
-
-    if (star.brightness > 0.72f) {
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(color.copy(alpha = alpha * 0.5f), Color.Transparent),
-                center = center,
-                radius = radius * 5f,
-            ),
-            radius = radius * 5f,
-            center = center,
-        )
-    }
-    drawCircle(color = color.copy(alpha = alpha), radius = radius, center = center)
 }
