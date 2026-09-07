@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -38,7 +39,9 @@ private const val MIST_SCALE = 6f
  * éclairé. La lumière vient de la même direction que pour la Lune et le Soleil.
  *
  * [seed] décale la brume : deux billes voisines n'ont pas exactement la même matière,
- * sans que leur famille visuelle en soit rompue.
+ * sans que leur famille visuelle en soit rompue. [tint] porte la couleur de la journée,
+ * décidée dans les Paramètres : elle teinte le halo, la brume et le liseré, mais jamais
+ * le texte, qui doit rester lisible quelle que soit la couleur choisie.
  *
  * La matière reste volontairement sourde. Le texte est porté par la bille et doit
  * rester le premier élément lu : une texture contrastée le rendrait pénible.
@@ -48,6 +51,8 @@ fun DayBead(
     size: Dp,
     emphasis: Float,
     seed: Int,
+    /** Couleur de la planète-jour, décidée par les réglages. */
+    tint: Color,
     contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -56,7 +61,7 @@ fun DayBead(
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
     val label = contentDescription
-    val mist = rememberDustBrush(palette.accentLunar, MIST_INTENSITY * emphasis, seed)
+    val mist = rememberDustBrush(tint, MIST_INTENSITY * emphasis, seed)
 
     Box(
         modifier = modifier
@@ -69,11 +74,11 @@ fun DayBead(
             val radius = this.size.minDimension / 2f
             val center = Offset(this.size.width / 2f, this.size.height / 2f)
 
-            drawSphereHalo(center, radius * 0.94f, palette.accentCosmic.copy(alpha = 0.16f * emphasis), spread = 1.10f)
+            drawSphereHalo(center, radius * 0.94f, tint.copy(alpha = 0.16f * emphasis), spread = 1.10f)
             drawSphereBody(
                 center = center,
                 radius = radius,
-                lit = lerp(palette.skyMid, palette.accentLunar, 0.22f * emphasis),
+                lit = lerp(palette.skyMid, tint, 0.22f * emphasis),
                 shade = palette.skyTop.copy(alpha = 0.92f),
             )
             // La brume est agrandie autour du centre : la tuile devient nuageuse au lieu
@@ -85,7 +90,7 @@ fun DayBead(
             drawSphereRim(
                 center = center,
                 radius = radius,
-                rim = palette.accentSolar.copy(alpha = 0.60f * emphasis),
+                rim = tint.copy(alpha = 0.72f * emphasis),
                 width = dimens.strokeThin.toPx(),
             )
         }

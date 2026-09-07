@@ -46,6 +46,8 @@ fun HomeScreen(
     val locale = LocaleConfig.resolve(LocalConfiguration.current.locales[0])
     val cursor by viewModel.cursor.collectAsState()
     val planningPreview by viewModel.planningPreview.collectAsState()
+    val nextPlanningPreview by viewModel.nextPlanningPreview.collectAsState()
+    val planetColors by viewModel.planetColors.collectAsState()
 
     BoxWithConstraints(
         modifier = modifier
@@ -59,6 +61,8 @@ fun HomeScreen(
             cursor = cursor,
             locale = locale,
             planningPreview = planningPreview,
+            nextPlanningPreview = nextPlanningPreview,
+            planetColors = planetColors,
             onOpenPlanning = onOpenPlanning,
             modifier = Modifier.statusBarsPadding(),
         )

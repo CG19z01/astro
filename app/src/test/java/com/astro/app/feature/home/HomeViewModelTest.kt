@@ -1,6 +1,9 @@
 package com.astro.app.feature.home
 
+import com.astro.app.core.config.FeatureId
 import com.astro.app.core.planning.PlanningRepository
+import com.astro.app.core.settings.SettingsRepository
+import com.astro.app.core.settings.UserPreferences
 import com.astro.app.core.time.SwipeDirection
 import com.astro.app.core.time.TimeScale
 import java.time.LocalDate
@@ -9,17 +12,24 @@ import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** Dépôt factice : ces tests portent sur le curseur, pas sur le stockage. */
+/** Dépôts factices : ces tests portent sur le curseur, pas sur le stockage. */
 private class NoPlanning : PlanningRepository {
     override fun entryFor(date: LocalDate): Flow<String> = flowOf("")
     override suspend fun save(date: LocalDate, text: String) = Unit
+}
+
+private class DefaultSettings : SettingsRepository {
+    override val featureStates: Flow<Map<FeatureId, Boolean>> = flowOf(emptyMap())
+    override suspend fun setFeatureEnabled(id: FeatureId, enabled: Boolean) = Unit
+    override val preferences: Flow<UserPreferences> = flowOf(UserPreferences())
+    override suspend fun updatePreferences(transform: (UserPreferences) -> UserPreferences) = Unit
 }
 
 class HomeViewModelTest {
 
     private val today = LocalDate.of(2026, 9, 6)
 
-    private fun viewModel() = HomeViewModel(NoPlanning()) { today }
+    private fun viewModel() = HomeViewModel(NoPlanning(), DefaultSettings()) { today }
 
     @Test
     fun `le curseur demarre sur la journee en cours`() {

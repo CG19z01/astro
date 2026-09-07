@@ -503,6 +503,42 @@ horaires affichés sont ceux de Marseille, les champs enregistrés restent ceux 
 et les coordonnées de session sont **absentes du fichier de préférences** (recherche
 directe de leur représentation binaire).
 
+## 5 octies. Couleur des planètes-jours
+
+Réglée dans les Paramètres, elle teinte les billes-journées de l'accueil : halo, brume
+interne et liseré. **Jamais le texte**, qui doit rester lisible quelle que soit la
+couleur choisie.
+
+Deux modes exclusifs, plus une exception :
+
+| Réglage | Effet |
+|---|---|
+| Semaine et week-end | Une couleur du lundi au vendredi, une autre le samedi et le dimanche |
+| Une couleur par jour | Une couleur distincte pour chacun des sept jours |
+| Règles de mot | Si le planning du jour contient le mot, sa planète prend cette couleur |
+
+**Ordre de priorité** : la première règle de mot qui correspond l'emporte sur le mode.
+C'est une exception délibérée — elle signale une journée particulière sans changer le
+réglage général.
+
+`PlanetColorResolver` est une fonction pure, couverte par test. Les couleurs sont
+stockées en ARGB entier, forme indépendante de Compose donc manipulable par la couche
+de données et testable sans Android.
+
+**Interprétation retenue** : « le texte » d'une journée est **son planning**, le seul
+texte propre à une date. La comparaison ignore la casse mais **pas les accents** :
+« reunion » ne déclenche pas une règle « réunion ». Choix assumé — une normalisation
+partielle surprendrait davantage qu'une absence de normalisation.
+
+**Format de stockage des règles** : la couleur en préfixe de **longueur fixe** (huit
+chiffres hexadécimaux) suivie du mot, une règle par ligne. Aucun séparateur entre les
+deux champs, donc aucun caractère du mot ne peut casser la lecture — un test le vérifie
+avec un mot contenant `|`, `=`, `,` et `;`. Seuls les retours à la ligne sont retirés.
+
+Palette et valeurs initiales dans `core/config/PlanetColorDefaults.kt`, nulle part
+ailleurs. **Limite** : l'utilisateur choisit parmi la palette proposée ; la saisie d'une
+couleur libre n'est pas offerte.
+
 ## 5 septies. Calcul des éphémérides
 
 **Les horaires se calculent à partir des COORDONNÉES, pas du fuseau horaire.** Le fuseau
@@ -680,9 +716,8 @@ Calendrier est actif.
 - **Sources de données** de la phrase du jour et de l'heure du réveil : inexistantes,
   les deux affichent un état vide.
 - **Compte utilisateur** : ni authentification, ni e-mail, ni mot de passe.
-- **Couleurs des planètes** : le réglage (une couleur par jour, ou semaine/week-end)
-  n'est pas implémenté. Les accents viennent de la palette du design system, qui est
-  l'endroit prévu pour le brancher.
+- **Saisie d'une couleur libre** pour les planètes-jours : seule la palette proposée
+  est offerte, pas un sélecteur de teinte quelconque.
 - **Signe astrologique par défaut** et ses deux modes de sélection.
 - **Voix** : ni import, ni dictée, ni lecture. La limitation technique sur l'import
   d'une voix (section 6) reste entière et non tranchée.

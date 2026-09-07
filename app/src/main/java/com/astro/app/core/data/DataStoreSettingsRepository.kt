@@ -61,11 +61,13 @@ class DataStoreSettingsRepository(
             stored[ZONE_ID] = updated.zoneId.id
             updated.latitude?.let { stored[LATITUDE] = it } ?: stored.remove(LATITUDE)
             updated.longitude?.let { stored[LONGITUDE] = it } ?: stored.remove(LONGITUDE)
+            stored.writePlanetColors(updated.planetColors)
         }
     }
 
     /** Un identifiant de fuseau devenu inconnu retombe sur celui de l'appareil. */
     private fun readPreferences(stored: Preferences) = UserPreferences(
+        planetColors = readPlanetColors(stored),
         showNavigationBar = stored[SHOW_NAV_BAR] ?: true,
         zoneId = stored[ZONE_ID]?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: ZoneId.systemDefault(),
         latitude = stored[LATITUDE],

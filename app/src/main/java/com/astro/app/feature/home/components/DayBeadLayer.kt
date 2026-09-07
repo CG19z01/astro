@@ -16,7 +16,10 @@ import androidx.compose.ui.unit.Dp
 import com.astro.app.R
 import com.astro.app.core.config.HomeLayoutConfig
 import com.astro.app.core.designsystem.AstroTheme
+import androidx.compose.ui.graphics.Color
 import com.astro.app.core.designsystem.components.SectionLabel
+import com.astro.app.core.settings.PlanetColorResolver
+import com.astro.app.core.settings.PlanetColors
 import com.astro.app.core.time.PeriodLabels
 import com.astro.app.core.time.TimeCursor
 import java.time.LocalDate
@@ -36,6 +39,8 @@ fun DayBeadLayer(
     cursor: TimeCursor,
     locale: Locale,
     planningPreview: String,
+    nextPlanningPreview: String,
+    planetColors: PlanetColors,
     onOpenPlanning: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -44,12 +49,20 @@ fun DayBeadLayer(
     val nextCursor = cursor.next()
     val primary = HomeLayoutConfig.primaryBead.bounds(width, height)
     val secondary = HomeLayoutConfig.secondaryBead.bounds(width, height)
+    // La couleur dépend du jour ET de son planning : une règle de mot peut la changer.
+    val primaryTint = Color(
+        PlanetColorResolver.colorFor(cursor.anchor.dayOfWeek, planningPreview, planetColors),
+    )
+    val secondaryTint = Color(
+        PlanetColorResolver.colorFor(nextCursor.anchor.dayOfWeek, nextPlanningPreview, planetColors),
+    )
 
     Box(modifier = modifier.fillMaxSize()) {
         DayBead(
             size = secondary.size,
             emphasis = 0.55f,
             seed = materialSeed(nextCursor),
+            tint = secondaryTint,
             contentDescription = PeriodLabels.title(nextCursor, locale),
             onClick = { onOpenPlanning(nextCursor.anchor) },
             modifier = Modifier.offset(x = secondary.x, y = secondary.y),
@@ -82,6 +95,7 @@ fun DayBeadLayer(
             size = primary.size,
             emphasis = 1f,
             seed = materialSeed(cursor),
+            tint = primaryTint,
             contentDescription = PeriodLabels.subtitle(cursor, locale),
             onClick = { onOpenPlanning(cursor.anchor) },
             modifier = Modifier.offset(x = primary.x, y = primary.y),

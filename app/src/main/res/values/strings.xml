@@ -69,6 +69,20 @@
     <string name="settings_location_forget">Oublier</string>
     <string name="action_close">Fermer</string>
 
+    <!-- Paramètres : couleur des planètes-jours -->
+    <string name="settings_planet_colors_title">Couleur des planètes</string>
+    <string name="settings_planet_colors_hint">Couleur des billes-journées sur l\'accueil.</string>
+    <string name="settings_planet_mode_week">Semaine et week-end</string>
+    <string name="settings_planet_mode_day">Une couleur par jour</string>
+    <string name="settings_planet_weekday">Du lundi au vendredi</string>
+    <string name="settings_planet_weekend">Samedi et dimanche</string>
+    <string name="settings_planet_keywords_title">Selon un mot du planning</string>
+    <string name="settings_planet_keywords_hint">Si le planning d\'une journée contient ce mot, sa planète prend cette couleur. La première règle qui correspond l\'emporte.</string>
+    <string name="settings_planet_keyword_field">Mot</string>
+    <string name="settings_planet_keyword_add">Ajouter</string>
+    <string name="settings_planet_keyword_remove">Retirer</string>
+    <string name="settings_planet_keyword_empty">Aucune règle.</string>
+
     <!-- Éphémérides -->
     <string name="settings_sun_title">Soleil</string>
     <string name="settings_moon_title">Lune</string>

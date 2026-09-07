@@ -19,6 +19,8 @@ data class UserPreferences(
     val zoneId: ZoneId = ZoneId.systemDefault(),
     val latitude: Double? = null,
     val longitude: Double? = null,
+    /** Couleur des planètes-jours. */
+    val planetColors: PlanetColors = PlanetColors(),
 ) {
     /** `true` si une position exploitable est renseignée. */
     val hasLocation: Boolean get() = latitude != null && longitude != null

@@ -24,6 +24,7 @@ import com.astro.app.core.designsystem.components.screenReveal
 import com.astro.app.core.location.ObservationPoints
 import com.astro.app.feature.settings.components.DeviceLocationRow
 import com.astro.app.feature.settings.components.DisplaySection
+import com.astro.app.feature.settings.components.PlanetColorSection
 import com.astro.app.feature.settings.components.SessionLocationRow
 import com.astro.app.feature.settings.components.EphemerisSection
 import com.astro.app.feature.settings.components.LocationSection
@@ -74,6 +75,13 @@ fun SettingsScreen(
                 onToggleNavigationBar = { shown -> viewModel.update { it.copy(showNavigationBar = shown) } },
                 onToggleFeature = viewModel::setFeatureEnabled,
                 modifier = Modifier.screenReveal(order = 3),
+            )
+
+            PlanetColorSection(
+                colors = preferences.planetColors,
+                locale = locale,
+                onChange = { updated -> viewModel.update { it.copy(planetColors = updated) } },
+                modifier = Modifier.screenReveal(order = 4),
             )
 
             LocationSection(

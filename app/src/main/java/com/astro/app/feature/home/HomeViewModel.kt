@@ -7,6 +7,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.astro.app.AstroApplication
 import com.astro.app.core.planning.PlanningRepository
+import com.astro.app.core.settings.PlanetColors
+import com.astro.app.core.settings.SettingsRepository
 import com.astro.app.core.time.SwipeDirection
 import com.astro.app.core.time.TimeCursor
 import com.astro.app.core.time.TimeScale
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /**
@@ -30,6 +33,7 @@ import kotlinx.coroutines.flow.stateIn
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModel(
     private val planning: PlanningRepository,
+    settings: SettingsRepository,
     /**
      * Source de la date du jour. Injectée plutôt que lue directement : sans cela, le
      * retour à aujourd'hui dépendrait de l'horloge système et ne serait pas testable.
@@ -44,6 +48,19 @@ class HomeViewModel(
     val planningPreview: StateFlow<String> = _cursor
         .flatMapLatest { current -> planning.entryFor(current.anchor) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), "")
+
+    /**
+     * Planning de la période suivante. Nécessaire à la couleur de la seconde bille :
+     * une règle de mot doit pouvoir la teindre elle aussi.
+     */
+    val nextPlanningPreview: StateFlow<String> = _cursor
+        .flatMapLatest { current -> planning.entryFor(current.next().anchor) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), "")
+
+    /** Réglages de couleur des planètes-jours. */
+    val planetColors: StateFlow<PlanetColors> = settings.preferences
+        .map { it.planetColors }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), PlanetColors())
 
     /**
      * Déplace le curseur DANS la temporalité courante.
@@ -73,7 +90,10 @@ class HomeViewModel(
             initializer {
                 val application =
                     this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as AstroApplication
-                HomeViewModel(application.container.planningRepository)
+                HomeViewModel(
+                    planning = application.container.planningRepository,
+                    settings = application.container.settingsRepository,
+                )
             }
         }
     }
