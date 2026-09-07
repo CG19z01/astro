@@ -58,6 +58,15 @@
     <string name="settings_longitude">Longitude</string>
     <string name="settings_zone">Fuseau horaire</string>
     <string name="settings_zone_search">Rechercher</string>
+    <string name="settings_use_device_location">Utiliser ma position</string>
+    <string name="settings_use_device_location_hint">Demandée sur le moment, jamais enregistrée.</string>
+    <string name="settings_device_location_action">Localiser</string>
+    <string name="settings_location_loading">Recherche de la position…</string>
+    <string name="settings_location_unavailable">Aucune position obtenue.</string>
+    <string name="settings_location_denied">Autorisation refusée.</string>
+    <string name="settings_location_active">Position de l\'appareil</string>
+    <string name="settings_location_active_hint">Temporaire : elle disparaît à la fermeture de l\'application.</string>
+    <string name="settings_location_forget">Oublier</string>
     <string name="action_close">Fermer</string>
 
     <!-- Éphémérides -->

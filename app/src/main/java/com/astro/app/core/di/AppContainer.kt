@@ -1,5 +1,7 @@
 package com.astro.app.core.di
 
+import com.astro.app.core.location.DeviceLocationProvider
+import com.astro.app.core.location.SessionLocation
 import com.astro.app.core.planning.PlanningRepository
 import com.astro.app.core.settings.SettingsRepository
 
@@ -13,4 +15,7 @@ import com.astro.app.core.settings.SettingsRepository
 class AppContainer(
     val settingsRepository: SettingsRepository,
     val planningRepository: PlanningRepository,
+    val locationProvider: DeviceLocationProvider,
+    /** Position de session : en mémoire uniquement, jamais enregistrée. */
+    val sessionLocation: SessionLocation,
 )

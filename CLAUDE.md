@@ -411,9 +411,9 @@ remplissage donnerait une forme fausse à toutes les phases intermédiaires.
 Le Soleil est la première carte : c'est l'astre par lequel on ouvre cette page, ses
 horaires viennent donc en tête.
 
-Les fonctionnalités affichées vivent **dans la carte « Affichage »**, sous l'interrupteur
-de la barre, séparées par un simple sous-titre : ce sont deux réglages du même sujet,
-et les séparer en deux cartes les faisait paraître indépendants.
+Les fonctionnalités affichées vivent **dans la carte « Affichage »**, à la suite de
+l'interrupteur de la barre et sans sous-titre : ce sont des réglages d'affichage, pas
+une famille distincte.
 
 **Elles n'apparaissent que si la barre de navigation est active.** Ces interrupteurs
 décident du contenu de la barre ; sans barre, ils n'ont plus d'objet.
@@ -428,6 +428,34 @@ La sortie de secours tient à une garantie posée plus tôt : **les Paramètres 
 désactivables**, le Soleil y mène donc toujours, et la carte « Affichage » y est toujours
 visible. Réactiver la barre fait revenir la section, et les fonctionnalités avec.
 Sans cette garantie, l'utilisateur serait enfermé.
+
+### Position de l'appareil — jamais enregistrée
+
+Les Paramètres proposent « Utiliser ma position ». La position obtenue vit **en mémoire
+seulement** (`core/location/SessionLocation`) : elle n'est écrite ni dans les
+préférences ni ailleurs, et disparaît à la fermeture de l'application. L'interface le
+dit explicitement plutôt que de le laisser deviner.
+
+`ObservationPoints.resolve` arbitre : la position de session l'emporte sur les
+coordonnées saisies, étant la demande la plus récente et la plus explicite. Fonction
+pure, couverte par test.
+
+La portée est applicative et non liée à un écran : la Lune et le Soleil doivent voir le
+même lieu dans une même session.
+
+**Aucune dépendance ajoutée.** `LocationManagerCompat` d'androidx.core, déjà présent,
+gère les différences entre versions d'Android depuis l'API 26 — les services Google Play
+ne sont pas nécessaires.
+
+Les fournisseurs sont essayés **les uns après les autres jusqu'à obtenir un point**.
+S'arrêter au premier disponible était un défaut : un appareil peut exposer un
+fournisseur réseau muet alors que son GPS répond. Corrigé le 2026-09-07 après
+constatation sur émulateur.
+
+Vérification faite : avec Paris enregistré et une position de session à Marseille, les
+horaires affichés sont ceux de Marseille, les champs enregistrés restent ceux de Paris,
+et les coordonnées de session sont **absentes du fichier de préférences** (recherche
+directe de leur représentation binaire).
 
 ## 5 septies. Calcul des éphémérides
 

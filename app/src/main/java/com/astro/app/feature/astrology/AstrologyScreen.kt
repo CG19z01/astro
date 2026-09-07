@@ -48,6 +48,7 @@ fun AstrologyScreen(
     viewModel: AstrologyViewModel = viewModel(factory = AstrologyViewModel.Factory),
 ) {
     val preferences by viewModel.preferences.collectAsState()
+    val point by viewModel.observationPoint.collectAsState()
     val dimens = AstroTheme.dimens
     val palette = AstroTheme.palette
     val locale = LocaleConfig.resolve(LocalConfiguration.current.locales[0])
@@ -55,9 +56,8 @@ fun AstrologyScreen(
     val unset = stringResource(R.string.home_value_unset)
     var expanded by rememberSaveable { mutableStateOf(false) }
 
-    val events = remember(preferences, today) {
-        if (!preferences.hasLocation) null
-        else MoonCalculator.eventsFor(today, preferences.zoneId, preferences.latitude!!, preferences.longitude!!)
+    val events = remember(point, preferences.zoneId, today) {
+        point?.let { MoonCalculator.eventsFor(today, preferences.zoneId, it.latitude, it.longitude) }
     }
 
     AstroScreen(
@@ -96,7 +96,7 @@ fun AstrologyScreen(
                 }
             }
 
-            if (!preferences.hasLocation) {
+            if (point == null) {
                 AstroCard(modifier = Modifier.screenReveal(order = 3)) {
                     Text(
                         text = stringResource(R.string.settings_location_missing),

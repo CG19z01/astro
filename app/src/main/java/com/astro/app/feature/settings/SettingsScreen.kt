@@ -11,26 +11,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.astro.app.R
-import com.astro.app.core.config.FeatureCatalog
 import com.astro.app.core.config.LocaleConfig
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.settings.UserPreferences
-import com.astro.app.core.designsystem.components.AstroCard
 import com.astro.app.core.designsystem.components.AstroScreen
-import com.astro.app.core.designsystem.components.SectionLabel
 import com.astro.app.core.designsystem.components.screenReveal
-import com.astro.app.feature.settings.components.AstroSwitch
+import com.astro.app.core.location.ObservationPoints
+import com.astro.app.feature.settings.components.DeviceLocationRow
+import com.astro.app.feature.settings.components.DisplaySection
+import com.astro.app.feature.settings.components.SessionLocationRow
 import com.astro.app.feature.settings.components.EphemerisSection
 import com.astro.app.feature.settings.components.LocationSection
-import com.astro.app.feature.settings.components.SettingRow
 import com.astro.app.feature.settings.components.ZonePickerDialog
 
 /**
@@ -46,8 +42,10 @@ fun SettingsScreen(
 ) {
     val states by viewModel.featureStates.collectAsState()
     val preferences by viewModel.preferences.collectAsState()
+    val sessionPoint by viewModel.sessionPoint.collectAsState()
+    val locationRequest by viewModel.locationRequest.collectAsState()
+    val point = ObservationPoints.resolve(sessionPoint, preferences)
     val dimens = AstroTheme.dimens
-    val palette = AstroTheme.palette
     val locale = LocaleConfig.resolve(LocalConfiguration.current.locales[0])
     var pickingZone by remember { mutableStateOf(false) }
 
@@ -64,40 +62,19 @@ fun SettingsScreen(
         ) {
             // Le Soleil ouvre cette page : ses horaires viennent donc en premier.
             EphemerisSection(
-                preferences = preferences,
+                point = point,
+                zoneId = preferences.zoneId,
                 locale = locale,
                 modifier = Modifier.screenReveal(order = 2),
             )
 
-            AstroCard(modifier = Modifier.screenReveal(order = 3)) {
-                SectionLabel(text = stringResource(R.string.settings_display_title))
-                SettingRow(
-                    label = stringResource(R.string.settings_show_nav_bar),
-                    description = stringResource(R.string.settings_show_nav_bar_hint),
-                    modifier = Modifier.padding(top = dimens.spaceMd),
-                ) {
-                    AstroSwitch(preferences.showNavigationBar) { shown ->
-                        viewModel.update { it.copy(showNavigationBar = shown) }
-                    }
-                }
-                // Ces interrupteurs décident du contenu de la barre : sans barre, ils
-                // n'ont plus d'objet et disparaissent avec elle.
-                if (preferences.showNavigationBar) {
-                    Text(
-                        text = stringResource(R.string.settings_features_title),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = palette.inkFaint,
-                        modifier = Modifier.padding(top = dimens.spaceLg, bottom = dimens.spaceXs),
-                    )
-                    FeatureCatalog.definitions.filter { it.canBeDisabled }.forEach { definition ->
-                        SettingRow(label = stringResource(definition.titleRes)) {
-                            AstroSwitch(states[definition.id] == true) { enabled ->
-                                viewModel.setFeatureEnabled(definition.id, enabled)
-                            }
-                        }
-                    }
-                }
-            }
+            DisplaySection(
+                showNavigationBar = preferences.showNavigationBar,
+                featureStates = states,
+                onToggleNavigationBar = { shown -> viewModel.update { it.copy(showNavigationBar = shown) } },
+                onToggleFeature = viewModel::setFeatureEnabled,
+                modifier = Modifier.screenReveal(order = 3),
+            )
 
             LocationSection(
                 overline = stringResource(R.string.settings_location_title),
@@ -116,7 +93,25 @@ fun SettingsScreen(
                 },
                 onPickZone = { pickingZone = true },
                 modifier = Modifier.screenReveal(order = 5),
-            )
+            ) {
+                if (sessionPoint != null) {
+                    SessionLocationRow(
+                        label = stringResource(R.string.settings_location_active),
+                        description = stringResource(R.string.settings_location_active_hint),
+                        forgetLabel = stringResource(R.string.settings_location_forget),
+                        onForget = viewModel::forgetDeviceLocation,
+                    )
+                } else {
+                    DeviceLocationRow(
+                        label = stringResource(R.string.settings_use_device_location),
+                        description = stringResource(locationRequestHint(locationRequest)),
+                        actionLabel = stringResource(R.string.settings_device_location_action),
+                        enabled = locationRequest != LocationRequest.LOADING,
+                        onGranted = viewModel::requestDeviceLocation,
+                        onDenied = viewModel::onLocationDenied,
+                    )
+                }
+            }
         }
     }
 
@@ -133,4 +128,12 @@ fun SettingsScreen(
             onDismiss = { pickingZone = false },
         )
     }
+}
+
+/** Message accompagnant la proposition, selon l'issue de la dernière demande. */
+private fun locationRequestHint(state: LocationRequest): Int = when (state) {
+    LocationRequest.IDLE -> R.string.settings_use_device_location_hint
+    LocationRequest.LOADING -> R.string.settings_location_loading
+    LocationRequest.UNAVAILABLE -> R.string.settings_location_unavailable
+    LocationRequest.DENIED -> R.string.settings_location_denied
 }

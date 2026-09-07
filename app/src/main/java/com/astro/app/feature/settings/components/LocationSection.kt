@@ -1,6 +1,7 @@
 package com.astro.app.feature.settings.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,6 +44,8 @@ fun LocationSection(
     onLongitudeChange: (String) -> Unit,
     onPickZone: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Lignes ajoutées dans la même carte : proposition d'utiliser la position de l'appareil. */
+    deviceLocation: @Composable ColumnScope.() -> Unit = {},
 ) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
@@ -71,6 +74,7 @@ fun LocationSection(
                 Text(text = zoneId.substringAfterLast('/'), color = palette.accentSolar)
             }
         }
+        deviceLocation()
     }
 }
 

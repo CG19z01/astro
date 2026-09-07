@@ -19,7 +19,7 @@ import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.designsystem.celestial.SunOrb
 import com.astro.app.core.designsystem.components.AstroCard
 import com.astro.app.core.designsystem.components.SectionLabel
-import com.astro.app.core.settings.UserPreferences
+import com.astro.app.core.location.ObservationPoint
 import com.astro.app.feature.settings.EphemerisFormat
 import java.time.LocalDate
 import java.util.Locale
@@ -38,15 +38,19 @@ private val ORB_SIZE = 132.dp
  * la Lune, pas à celle atteinte par le Soleil.
  */
 @Composable
-fun EphemerisSection(preferences: UserPreferences, locale: Locale, modifier: Modifier = Modifier) {
+fun EphemerisSection(
+    point: ObservationPoint?,
+    zoneId: java.time.ZoneId,
+    locale: Locale,
+    modifier: Modifier = Modifier,
+) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
     val today = remember { LocalDate.now() }
     val unset = stringResource(R.string.home_value_unset)
 
-    val events = remember(preferences, today) {
-        if (!preferences.hasLocation) null
-        else SunCalculator.eventsFor(today, preferences.latitude!!, preferences.longitude!!)
+    val events = remember(point, today) {
+        point?.let { SunCalculator.eventsFor(today, it.latitude, it.longitude) }
     }
 
     AstroCard(modifier = modifier) {
@@ -69,11 +73,11 @@ fun EphemerisSection(preferences: UserPreferences, locale: Locale, modifier: Mod
             Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceSm)) {
                 TimeLine(
                     label = stringResource(R.string.ephemeris_sunrise),
-                    value = EphemerisFormat.time(events.sunrise, preferences.zoneId, locale, unset),
+                    value = EphemerisFormat.time(events.sunrise, zoneId, locale, unset),
                 )
                 TimeLine(
                     label = stringResource(R.string.ephemeris_sunset),
-                    value = EphemerisFormat.time(events.sunset, preferences.zoneId, locale, unset),
+                    value = EphemerisFormat.time(events.sunset, zoneId, locale, unset),
                 )
             }
         }

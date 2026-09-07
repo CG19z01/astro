@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Position demandée uniquement à la demande de l'utilisateur, pour calculer les
+         horaires du Soleil et de la Lune. Elle n'est jamais enregistrée : voir
+         core/location/SessionLocation. La précision approximative suffit — une erreur
+         de quelques kilomètres décale un lever de soleil de quelques secondes. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
         android:name=".AstroApplication"
         android:allowBackup="true"
