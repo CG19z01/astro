@@ -28,7 +28,8 @@ import androidx.compose.ui.unit.dp
 import com.astro.app.core.config.PlanetColorDefaults
 import com.astro.app.core.designsystem.AstroTheme
 
-private val SWATCH_SIZE = 30.dp
+/** Diamètre commun aux pastilles de couleur, celle de la roue comprise. */
+internal val SWATCH_SIZE = 30.dp
 
 /**
  * Choix d'une couleur parmi la palette proposée.
