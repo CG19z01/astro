@@ -59,7 +59,14 @@ fun SettingsScreen(
                 .padding(bottom = dimens.spaceXxl),
             verticalArrangement = Arrangement.spacedBy(dimens.spaceMd),
         ) {
-            AstroCard(modifier = Modifier.screenReveal(order = 2)) {
+            // Le Soleil ouvre cette page : ses horaires viennent donc en premier.
+            EphemerisSection(
+                preferences = preferences,
+                locale = locale,
+                modifier = Modifier.screenReveal(order = 2),
+            )
+
+            AstroCard(modifier = Modifier.screenReveal(order = 3)) {
                 SectionLabel(text = stringResource(R.string.settings_display_title))
                 SettingRow(
                     label = stringResource(R.string.settings_show_nav_bar),
@@ -72,15 +79,19 @@ fun SettingsScreen(
                 }
             }
 
-            AstroCard(modifier = Modifier.screenReveal(order = 3)) {
-                SectionLabel(text = stringResource(R.string.settings_features_title))
-                FeatureCatalog.definitions.filter { it.canBeDisabled }.forEachIndexed { index, definition ->
-                    SettingRow(
-                        label = stringResource(definition.titleRes),
-                        modifier = Modifier.padding(top = if (index == 0) dimens.spaceSm else 0.dp),
-                    ) {
-                        AstroSwitch(states[definition.id] == true) { enabled ->
-                            viewModel.setFeatureEnabled(definition.id, enabled)
+            // Ces interrupteurs décident du contenu de la barre de navigation : sans
+            // barre, la section n'a plus d'objet et disparaît avec elle.
+            if (preferences.showNavigationBar) {
+                AstroCard(modifier = Modifier.screenReveal(order = 4)) {
+                    SectionLabel(text = stringResource(R.string.settings_features_title))
+                    FeatureCatalog.definitions.filter { it.canBeDisabled }.forEachIndexed { index, definition ->
+                        SettingRow(
+                            label = stringResource(definition.titleRes),
+                            modifier = Modifier.padding(top = if (index == 0) dimens.spaceSm else 0.dp),
+                        ) {
+                            AstroSwitch(states[definition.id] == true) { enabled ->
+                                viewModel.setFeatureEnabled(definition.id, enabled)
+                            }
                         }
                     }
                 }
@@ -102,10 +113,8 @@ fun SettingsScreen(
                     viewModel.update { it.copy(longitude = UserPreferences.validLongitude(text.toDoubleOrNull())) }
                 },
                 onPickZone = { pickingZone = true },
-                modifier = Modifier.screenReveal(order = 4),
+                modifier = Modifier.screenReveal(order = 5),
             )
-
-            EphemerisSection(preferences = preferences, locale = locale)
         }
     }
 

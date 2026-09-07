@@ -406,6 +406,26 @@ Les disques de phase (`MoonPhaseGlyph`) ne sont pas des cercles partiellement re
 le terminateur se projette comme une **ellipse** de demi-axe `R × |1 − 2k|`. Un simple
 remplissage donnerait une forme fausse à toutes les phases intermédiaires.
 
+### Ordre et conditions de la page Paramètres
+
+Le Soleil est la première carte : c'est l'astre par lequel on ouvre cette page, ses
+horaires viennent donc en tête.
+
+**La section « Fonctionnalités affichées » n'apparaît que si la barre de navigation est
+active** (demandé le 2026-09-07). Ces interrupteurs décident du contenu de la barre ;
+sans barre, la section n'a plus d'objet.
+
+**Conséquence à connaître** : ces mêmes interrupteurs pilotent aussi les raccourcis de
+la page d'accueil — la Lune, la capsule de la phrase, le dodécaèdre. Masquer la barre
+retire donc aussi le moyen de les rallumer. Le cas s'est produit en test : quatre
+fonctionnalités coupées et la barre masquée, la Home ne montrait plus que le Soleil et
+les billes.
+
+La sortie de secours tient à une garantie posée plus tôt : **les Paramètres ne sont pas
+désactivables**, le Soleil y mène donc toujours, et la carte « Affichage » y est toujours
+visible. Réactiver la barre fait revenir la section, et les fonctionnalités avec.
+Sans cette garantie, l'utilisateur serait enfermé.
+
 ## 5 septies. Calcul des éphémérides
 
 **Les horaires se calculent à partir des COORDONNÉES, pas du fuseau horaire.** Le fuseau

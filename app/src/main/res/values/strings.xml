@@ -48,7 +48,7 @@
     <!-- Paramètres : affichage -->
     <string name="settings_display_title">Affichage</string>
     <string name="settings_show_nav_bar">Barre de navigation</string>
-    <string name="settings_show_nav_bar_hint">Masquée, la navigation passe par les éléments de l\'accueil.</string>
+    <string name="settings_show_nav_bar_hint">Masquée, la navigation passe par les éléments de l\'accueil et la liste des fonctionnalités est retirée.</string>
 
     <!-- Paramètres : lieu d'observation -->
     <string name="settings_location_title">Lieu d\'observation</string>
