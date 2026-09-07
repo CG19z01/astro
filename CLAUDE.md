@@ -391,6 +391,30 @@ Attente du démarrage : boucler sur `adb shell getprop sys.boot_completed` jusqu
 `adb wait-for-device` rend la main alors que l'appareil est encore `offline` : insuffisant.
 Installation : `adb install -r app\build\outputs\apk\debug\app-debug.apk`
 
+### Clavier dans l'émulateur
+
+Un AVD créé par `avdmanager` a **`hw.keyboard=no`** par défaut : le clavier du PC n'est
+pas transmis à l'émulateur, seul le clavier tactile fonctionne. Corrigé le 2026-09-07 en
+passant `hw.keyboard=yes` dans
+`C:\Users\cgill\.android\avd\Astro_Pixel8_API36.avd\config.ini`
+(sauvegarde : `config.ini.bak`). Le changement demande un redémarrage de l'émulateur.
+
+Effet de bord : dès qu'Android détecte un clavier physique, il **masque** le clavier
+tactile. Pour garder les deux :
+`adb shell settings put secure show_ime_with_hard_keyboard 1`
+
+Les deux réglages survivent aux redémarrages de l'émulateur. Ils seraient perdus par un
+effacement des données de l'AVD.
+
+Limite connue : `hw.keyboard.charmap=qwerty2`. Sur un clavier physique AZERTY, certains
+caractères peuvent ne pas correspondre. Non vérifié — je ne peux pas appuyer sur des
+touches physiques.
+
+**Attention lors des tests** : `adb shell pm clear com.astro.app` efface les préférences
+et les plannings. Les données survivent en revanche à un `am force-stop`, à une
+réinstallation par `install -r` et à un arrêt brutal de l'émulateur (`adb emu kill`) —
+les trois cas ont été vérifiés.
+
 ## 8. Hors crédit
 
 Ce qui n'a pas été fait, et pourquoi. À traiter avant de considérer une section terminée.
