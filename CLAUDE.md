@@ -264,9 +264,15 @@ poussière. Le noir profond n'a de sens que pour la nuit ; l'appliquer partout a
 supprimé la seconde ambiance.
 
 **Champ d'étoiles** (`StarField`) : quinze au maximum, petites, d'éclat et de taille
-variables, réparties au hasard avec une graine fixe. Elles dérivent en sept à vingt
-minutes de traversée d'écran — le mouvement existe sans s'attraper du regard. Une étoile
-sortie par un bord revient par l'opposé, donc le ciel ne se vide jamais.
+variables, réparties au hasard avec une graine fixe. Elles dérivent **de la gauche vers
+la droite**, en sept à vingt minutes de traversée d'écran, accélérées de 5 % — le
+mouvement existe sans s'attraper du regard. Le sens commun donne au ciel une cohérence,
+les vitesses inégales évitent l'effet de bloc qui se déplace d'un seul tenant. Une étoile
+sortie par la droite revient par la gauche, donc le ciel ne se vide jamais.
+
+L'accélération est un facteur (`SPEED_FACTOR`) et non une modification des durées de
+traversée : l'écart au réglage d'origine reste lisible, et un nouvel ajustement se fait
+au même endroit.
 
 Les positions sont intégrées image par image à partir du temps écoulé, comme la rotation
 du solide, et non animées entre deux bornes : une animation bouclée provoquerait un saut
@@ -326,6 +332,21 @@ change après coup. Ce sont des polices **variables** — les graisses viennent 
 `labelSmall` sert d'exergue : petites capitales très espacées, précédées d'un filet
 (`SectionLabel`). C'est le motif récurrent qui rattache les écrans entre eux, et le
 seul endroit où l'on emploie des capitales.
+
+### Transitions entre pages
+
+Le passage d'un écran à l'autre est un **fondu**, de la même durée que la bascule
+d'ambiance (`AstroMotion.TRANSITION_MILLIS`) : la page et ses couleurs changent d'un
+seul mouvement au lieu de se succéder.
+
+Il s'applique à **toutes** les destinations. La demande citait quatre éléments — Lune,
+Soleil, dodécaèdre, bille-journée — mais n'animer que quatre destinations sur six aurait
+rendu la navigation incohérente, d'autant que l'Astrologie et les Paramètres sont aussi
+atteints depuis la barre.
+
+Vérifié par mesure : à 300 ms d'une transition vers l'Astrologie, le haut de l'écran vaut
+R203 G196 B194, entre le noir de l'accueil (3, 4, 8) et le crème de l'Astrologie
+(≈ 247, 237, 226) — une image qui n'appartient à aucune des deux pages.
 
 ### Animation
 

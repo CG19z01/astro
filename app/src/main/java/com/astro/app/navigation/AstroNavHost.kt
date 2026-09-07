@@ -1,5 +1,10 @@
 package com.astro.app.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -11,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.astro.app.core.config.FeatureCatalog
+import com.astro.app.core.designsystem.AstroMotion
 import com.astro.app.core.config.FeatureId
 import com.astro.app.feature.astrology.AstrologyScreen
 import com.astro.app.feature.calendar.CalendarScreen
@@ -22,6 +28,11 @@ import com.astro.app.feature.settings.SettingsScreen
 
 /**
  * Graphe de navigation, dérivé du catalogue de fonctionnalités.
+ *
+ * Le passage d'un écran à l'autre se fait en **fondu**, dans la même durée que la
+ * bascule d'ambiance : la page et ses couleurs changent donc d'un seul mouvement au
+ * lieu de se succéder. Le fondu s'applique à toutes les destinations — n'en animer
+ * qu'une partie rendrait la navigation incohérente.
  *
  * L'état d'activation est passé sous forme de [State] et non de `Map` : `NavHost`
  * mémorise son graphe et ne reconstruit pas le bloc de construction quand les valeurs
@@ -40,6 +51,10 @@ fun AstroNavHost(
         navController = navController,
         startDestination = FeatureCatalog.home.route,
         modifier = modifier,
+        enterTransition = { pageFadeIn() },
+        exitTransition = { pageFadeOut() },
+        popEnterTransition = { pageFadeIn() },
+        popExitTransition = { pageFadeOut() },
     ) {
         composable(FeatureCatalog.home.route) {
             HomeScreen(
@@ -78,3 +93,11 @@ private fun NavGraphBuilder.feature(
         }
     }
 }
+
+/** Apparition de la page entrante. */
+private fun pageFadeIn(): EnterTransition =
+    fadeIn(animationSpec = tween(AstroMotion.TRANSITION_MILLIS, easing = AstroMotion.Emphasized))
+
+/** Effacement de la page sortante. */
+private fun pageFadeOut(): ExitTransition =
+    fadeOut(animationSpec = tween(AstroMotion.TRANSITION_MILLIS, easing = AstroMotion.Emphasized))

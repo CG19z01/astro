@@ -13,8 +13,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.random.Random
 
 /** Nombre d'étoiles à l'écran. Volontairement bas : le vide fait partie de la composition. */
@@ -32,17 +30,29 @@ private const val STAR_SEED = 20260907L
 private const val MIN_CROSSING_SECONDS = 420f
 private const val MAX_CROSSING_SECONDS = 1_200f
 
+/**
+ * Accélération de la dérive, demandée le 2026-09-07.
+ *
+ * Appliquée en facteur plutôt qu'en modifiant les durées de traversée : l'écart au
+ * réglage d'origine reste ainsi lisible, et un nouvel ajustement se fait ici.
+ */
+private const val SPEED_FACTOR = 1.05f
+
 /** Au-delà de ce seuil de luminosité, une étoile reçoit un léger halo. */
 private const val HALO_THRESHOLD = 0.72f
 
 private const val NANOS_PER_SECOND = 1_000_000_000f
 
-/** Une étoile : sa position de départ, sa dérive, sa taille et son éclat. */
+/**
+ * Une étoile : sa position de départ, sa vitesse, sa taille et son éclat.
+ *
+ * La dérive est purement horizontale, de la gauche vers la droite : une seule vitesse
+ * suffit donc à la décrire.
+ */
 private class Star(
     val x: Float,
     val y: Float,
-    val driftX: Float,
-    val driftY: Float,
+    val speed: Float,
     val size: Float,
     val brightness: Float,
 )
@@ -50,10 +60,14 @@ private class Star(
 /**
  * Champ d'étoiles en dérive lente.
  *
+ * Toutes dérivent **de la gauche vers la droite**, à des vitesses différentes : un sens
+ * commun donne au ciel une cohérence de mouvement, les vitesses inégales évitent l'effet
+ * de bloc qui se déplace d'un seul tenant.
+ *
  * Les positions sont intégrées image par image à partir du temps écoulé, et non
  * animées entre deux bornes : une animation bouclée provoquerait un saut au moment
- * de sa reprise. Chaque étoile qui sort d'un bord réapparaît par le bord opposé, ce
- * qui rend le mouvement continu sans jamais vider le ciel.
+ * de sa reprise. Une étoile sortie par la droite réapparaît par la gauche, ce qui rend
+ * le mouvement continu sans jamais vider le ciel.
  *
  * Quinze cercles par image : le coût est négligeable.
  */
@@ -62,15 +76,12 @@ fun StarField(color: Color, dimmed: Boolean, modifier: Modifier = Modifier) {
     val stars = remember {
         val random = Random(STAR_SEED)
         List(STAR_COUNT) {
-            val direction = random.nextFloat() * 2f * Math.PI.toFloat()
             val crossing = MIN_CROSSING_SECONDS +
                 random.nextFloat() * (MAX_CROSSING_SECONDS - MIN_CROSSING_SECONDS)
-            val speed = 1f / crossing
             Star(
                 x = random.nextFloat(),
                 y = random.nextFloat(),
-                driftX = cos(direction) * speed,
-                driftY = sin(direction) * speed,
+                speed = SPEED_FACTOR / crossing,
                 size = random.nextFloat(),
                 brightness = random.nextFloat(),
             )
@@ -96,8 +107,8 @@ fun StarField(color: Color, dimmed: Boolean, modifier: Modifier = Modifier) {
 
 private fun DrawScope.drawStar(star: Star, seconds: Float, color: Color, dimmed: Boolean) {
     val center = Offset(
-        x = wrap(star.x + star.driftX * seconds) * size.width,
-        y = wrap(star.y + star.driftY * seconds) * size.height,
+        x = wrap(star.x + star.speed * seconds) * size.width,
+        y = star.y * size.height,
     )
     val radius = (0.4f + star.size * star.size * 1.9f).dp.toPx()
     val alpha = (0.14f + star.brightness * 0.62f) * if (dimmed) 0.6f else 1f
@@ -116,5 +127,5 @@ private fun DrawScope.drawStar(star: Star, seconds: Float, color: Color, dimmed:
     drawCircle(color = color.copy(alpha = alpha), radius = radius, center = center)
 }
 
-/** Ramène une coordonnée dans [0, 1[ : l'étoile sortie d'un bord revient par l'autre. */
+/** Ramène l'abscisse dans [0, 1[ : l'étoile sortie par la droite revient par la gauche. */
 private fun wrap(value: Float): Float = ((value % 1f) + 1f) % 1f
