@@ -536,8 +536,19 @@ deux champs, donc aucun caractère du mot ne peut casser la lecture — un test 
 avec un mot contenant `|`, `=`, `,` et `;`. Seuls les retours à la ligne sont retirés.
 
 Palette et valeurs initiales dans `core/config/PlanetColorDefaults.kt`, nulle part
-ailleurs. **Limite** : l'utilisateur choisit parmi la palette proposée ; la saisie d'une
-couleur libre n'est pas offerte.
+ailleurs. Une dernière pastille marquée d'un plus ouvre une **roue chromatique** qui
+donne accès à toutes les couleurs ; elle affiche ensuite la teinte retenue lorsque
+celle-ci ne figure pas dans la palette, sans quoi un choix personnalisé n'apparaîtrait
+nulle part.
+
+La roue est faite de deux dégradés superposés : un **balayage** pour la teinte, qui fait
+le tour du cercle, et un **radial** blanc vers transparent pour la saturation. La
+dessiner pixel par pixel donnerait le même résultat en coûtant bien plus cher. La
+luminosité est réglée à part par un curseur : elle ne peut pas s'exprimer sur un disque
+déjà occupé par la teinte et la saturation.
+
+Les pastilles vont à la ligne (`FlowRow`) : neuf ne tiennent pas sur une seule rangée,
+et les serrer écrasait la dernière — précisément celle qui ouvre la roue.
 
 ## 5 septies. Calcul des éphémérides
 
@@ -716,8 +727,6 @@ Calendrier est actif.
 - **Sources de données** de la phrase du jour et de l'heure du réveil : inexistantes,
   les deux affichent un état vide.
 - **Compte utilisateur** : ni authentification, ni e-mail, ni mot de passe.
-- **Saisie d'une couleur libre** pour les planètes-jours : seule la palette proposée
-  est offerte, pas un sélecteur de teinte quelconque.
 - **Signe astrologique par défaut** et ses deux modes de sélection.
 - **Voix** : ni import, ni dictée, ni lecture. La limitation technique sur l'import
   d'une voix (section 6) reste entière et non tranchée.

@@ -1,12 +1,14 @@
 package com.astro.app.feature.settings.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,9 +16,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
+import com.astro.app.R
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.astro.app.core.config.PlanetColorDefaults
 import com.astro.app.core.designsystem.AstroTheme
@@ -29,9 +39,12 @@ private val SWATCH_SIZE = 30.dp
  * La couleur retenue porte un anneau clair : sur des pastilles rondes de teintes
  * proches, un simple changement de taille ne se lirait pas.
  *
- * La palette vient de la configuration, pas de ce composant. La saisie d'une couleur
- * libre n'est pas offerte à ce stade.
+ * La palette vient de la configuration, pas de ce composant. Une dernière pastille,
+ * marquée d'un plus, ouvre la roue chromatique et donne accès à toutes les couleurs.
+ * Elle affiche la couleur courante lorsque celle-ci ne figure pas dans la palette :
+ * sans cela, un choix personnalisé n'apparaîtrait nulle part.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ColorSwatchRow(
     label: String,
@@ -41,6 +54,8 @@ fun ColorSwatchRow(
 ) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
+    val custom = selected !in PlanetColorDefaults.PALETTE
+    var wheelOpen by remember { mutableStateOf(false) }
 
     Column(modifier = modifier.fillMaxWidth().padding(vertical = dimens.spaceSm)) {
         Text(
@@ -48,9 +63,12 @@ fun ColorSwatchRow(
             style = MaterialTheme.typography.bodyMedium,
             color = palette.inkMuted,
         )
-        Row(
+        // Disposition qui va à la ligne : neuf pastilles ne tiennent pas sur une seule,
+        // et les serrer écraserait la dernière — celle qui ouvre la roue.
+        FlowRow(
             modifier = Modifier.fillMaxWidth().padding(top = dimens.spaceSm),
             horizontalArrangement = Arrangement.spacedBy(dimens.spaceSm),
+            verticalArrangement = Arrangement.spacedBy(dimens.spaceSm),
         ) {
             PlanetColorDefaults.PALETTE.forEach { color ->
                 Swatch(
@@ -60,7 +78,60 @@ fun ColorSwatchRow(
                     onClick = { onSelect(color) },
                 )
             }
+            CustomSwatch(
+                color = if (custom) Color(selected) else palette.surface,
+                selected = custom,
+                ring = palette.ink,
+                plus = palette.ink,
+                onClick = { wheelOpen = true },
+            )
         }
+    }
+
+    if (wheelOpen) {
+        ColorWheelDialog(
+            initial = selected,
+            title = stringResource(R.string.settings_color_wheel_title),
+            confirmLabel = stringResource(R.string.settings_color_wheel_confirm),
+            dismissLabel = stringResource(R.string.action_close),
+            brightnessLabel = stringResource(R.string.settings_color_wheel_brightness),
+            onConfirm = { color ->
+                onSelect(color)
+                wheelOpen = false
+            },
+            onDismiss = { wheelOpen = false },
+        )
+    }
+}
+
+/** Pastille d'ouverture de la roue : un plus, ou la couleur personnalisée en cours. */
+@Composable
+private fun CustomSwatch(
+    color: Color,
+    selected: Boolean,
+    ring: Color,
+    plus: Color,
+    onClick: () -> Unit,
+) {
+    Canvas(
+        modifier = Modifier
+            .size(SWATCH_SIZE)
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+    ) {
+        val radius = size.minDimension / 2f
+        val center = Offset(size.width / 2f, size.height / 2f)
+        drawCircle(color = color, radius = radius, center = center)
+        drawCircle(
+            color = if (selected) ring else ring.copy(alpha = 0.45f),
+            radius = radius - 1.dp.toPx(),
+            center = center,
+            style = Stroke(width = if (selected) 2.dp.toPx() else 1.dp.toPx()),
+        )
+        val arm = radius * 0.42f
+        val thickness = 1.6f.dp.toPx()
+        drawLine(plus, Offset(center.x - arm, center.y), Offset(center.x + arm, center.y), thickness)
+        drawLine(plus, Offset(center.x, center.y - arm), Offset(center.x, center.y + arm), thickness)
     }
 }
 

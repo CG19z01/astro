@@ -82,6 +82,9 @@
     <string name="settings_planet_keyword_add">Ajouter</string>
     <string name="settings_planet_keyword_remove">Retirer</string>
     <string name="settings_planet_keyword_empty">Aucune règle.</string>
+    <string name="settings_color_wheel_title">Choisir une couleur</string>
+    <string name="settings_color_wheel_confirm">Choisir</string>
+    <string name="settings_color_wheel_brightness">Luminosité</string>
 
     <!-- Éphémérides -->
     <string name="settings_sun_title">Soleil</string>
