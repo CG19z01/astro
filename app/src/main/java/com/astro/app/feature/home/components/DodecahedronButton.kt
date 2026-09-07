@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
@@ -27,7 +26,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.astro.app.core.designsystem.AstroMotion
 import com.astro.app.core.designsystem.AstroTheme
-import com.astro.app.feature.home.DodecahedronGeometry
 import kotlinx.coroutines.delay
 
 /**
@@ -40,8 +38,12 @@ import kotlinx.coroutines.delay
  * entre en jeu. L'emballement se prolonge quelques secondes après le relâchement, puis
  * redescend — voir `rememberSolidRotation`.
  *
- * Aucune bibliothèque 3D. La géométrie vient de [DodecahedronGeometry] ; il ne reste
- * ici que les rotations, la projection et le tracé des 30 arêtes.
+ * **Décision de rendu : dessin Compose sur Canvas, avec faces pleines éclairées.**
+ * Un moteur 3D pour un seul petit objet ajouterait une dépendance et une surface de
+ * rendu à intégrer dans la composition, pour un gain nul ici. Une série d'images
+ * pré-rendues figerait l'éclairage, ne suivrait pas la palette de l'ambiance et
+ * pèserait en mémoire. Le calcul direct garde la maîtrise complète de la rotation,
+ * de la lumière et des couleurs, sans dépendance.
  *
  * **Deux axes sont animés**, à des périodes volontairement non multiples l'une de
  * l'autre : le mouvement ne se répète donc jamais à l'identique et l'objet présente
@@ -103,33 +105,29 @@ fun DodecahedronButton(
     ) {
         val center = Offset(this.size.width / 2f, this.size.height / 2f)
         val boxRadius = this.size.minDimension / 2f
-        val scale = boxRadius * 0.70f
-        val projected = DodecahedronGeometry.vertices.map {
-            project(it, rotation.yaw, rotation.pitch, rotation.roll, center, scale)
-        }
-        val strokeWidth = dimens.strokeThin.toPx()
+        val scale = boxRadius * 0.66f
 
-        // Halo : le solide doit paraître suspendu, pas posé sur le fond. Il est calé sur
-        // le cadre, sinon la découpe circulaire du bouton le tranche net.
+        // Halo calé sur le cadre : le solide doit paraître suspendu, et la découpe
+        // circulaire du bouton trancherait net un dégradé plus large.
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(palette.accentCosmic.copy(alpha = 0.20f), Color.Transparent),
+                colors = listOf(palette.accentCosmic.copy(alpha = 0.22f), Color.Transparent),
                 center = center,
                 radius = boxRadius,
             ),
             radius = boxRadius,
             center = center,
         )
-        DodecahedronGeometry.edges.forEach { (from, to) ->
-            val depth = (projected[from].second + projected[to].second) / 2f
-            val tint = lerpEdgeColor(palette.accentCosmic, palette.accentLunar, depth)
-            drawLine(
-                color = tint.copy(alpha = alphaForDepth(depth)),
-                start = projected[from].first,
-                end = projected[to].first,
-                strokeWidth = strokeWidth,
-                cap = StrokeCap.Round,
-            )
-        }
+        drawDodecahedron(
+            yaw = rotation.yaw,
+            pitch = rotation.pitch,
+            roll = rotation.roll,
+            center = center,
+            scale = scale,
+            strokeWidth = dimens.hairline.toPx(),
+            darkFace = palette.skyTop,
+            litFace = palette.accentCosmic,
+            edge = palette.accentLunar,
+        )
     }
 }

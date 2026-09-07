@@ -5,39 +5,35 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathOperation
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import com.astro.app.core.designsystem.AstroTheme
+import com.astro.app.core.designsystem.texture.AstroLight
+import com.astro.app.core.designsystem.texture.drawSphereBody
+import com.astro.app.core.designsystem.texture.drawSphereHalo
+import com.astro.app.core.designsystem.texture.drawSphereInnerShadow
+import com.astro.app.core.designsystem.texture.lerp
+import com.astro.app.core.designsystem.texture.rememberGrainBrush
 
-/**
- * Décalage et taille du disque d'ombre, en fraction du rayon de la Lune.
- *
- * Un disque d'ombre de même rayon donne un croissant qui enveloppe plus de la moitié
- * du disque et se lit comme un anneau. En l'agrandissant, les cornes se rapprochent
- * et le croissant s'affine.
- */
-private const val SHADOW_OFFSET = 0.52f
-private const val SHADOW_RADIUS_RATIO = 1.28f
+private const val REGOLITH_INTENSITY = 0.10f
+private const val REGOLITH_SCALE = 2.4f
 
 /**
  * La Lune : point d'entrée vers l'Astrologie.
  *
- * Un croissant plein plutôt qu'un disque cratéré. Le croissant est obtenu par
- * remplissage pair-impair de deux cercles décalés : c'est exact géométriquement,
- * là où un disque peint par-dessus ne fonctionnerait pas sur un fond en dégradé.
- *
- * Le disque complet reste tracé en filet fin : la partie non éclairée se devine,
- * comme sur une carte lunaire.
+ * Une surface, et non un croissant découpé. Le corps est éclairé depuis la source
+ * commune à l'application, creusé par une ombre interne, couvert d'un grain de régolithe
+ * et marqué de cratères en relief. La face non éclairée reste faiblement visible, comme
+ * une lumière cendrée : la faire disparaître donnerait un croissant flottant, sans corps.
  */
 @Composable
 fun MoonButton(
@@ -47,8 +43,9 @@ fun MoonButton(
     modifier: Modifier = Modifier,
 ) {
     val palette = AstroTheme.palette
-    val dimens = AstroTheme.dimens
     val label = contentDescription
+    val regolith = rememberGrainBrush(palette.ink, REGOLITH_INTENSITY)
+    val craters = remember { CraterField.generate() }
 
     Canvas(
         modifier = modifier
@@ -57,51 +54,56 @@ fun MoonButton(
             .clickable(onClick = onClick)
             .semantics { this.contentDescription = label },
     ) {
-        // Le halo doit s'éteindre exactement au bord du cadre : au-delà, la découpe
-        // circulaire du bouton le trancherait net et créerait un disque visible.
         val boxRadius = this.size.minDimension / 2f
-        val radius = boxRadius * 0.60f
+        val radius = boxRadius * 0.62f
         val center = Offset(this.size.width / 2f, this.size.height / 2f)
 
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(palette.accentLunar.copy(alpha = 0.22f), Color.Transparent),
-                center = center,
-                radius = boxRadius,
-            ),
-            radius = boxRadius,
+        drawSphereHalo(center, radius, palette.accentLunar.copy(alpha = 0.30f), spread = boxRadius / radius)
+        drawSphereBody(
             center = center,
-        )
-        drawCircle(
-            color = palette.inkFaint.copy(alpha = 0.55f),
             radius = radius,
-            center = center,
-            style = Stroke(width = dimens.hairline.toPx()),
+            lit = lerp(palette.accentLunar, Color.White, 0.55f),
+            shade = lerp(palette.skyTop, palette.accentLunar, 0.12f),
         )
-        drawPath(path = crescent(center, radius), color = palette.accentLunar)
+        scale(REGOLITH_SCALE, REGOLITH_SCALE, pivot = center) {
+            drawCircle(brush = regolith, radius = radius / REGOLITH_SCALE, center = center)
+        }
+        craters.forEach { drawCrater(it, center, radius, palette.skyTop, Color.White) }
+        drawSphereInnerShadow(center, radius, palette.skyTop.copy(alpha = 0.80f))
     }
 }
 
 /**
- * Croissant = disque éclairé MOINS disque d'ombre décalé.
- *
- * C'est bien une soustraction, et non un remplissage pair-impair : ce dernier peint la
- * différence symétrique, donc la partie du disque d'ombre qui déborde hors de la Lune
- * serait peinte elle aussi, et la figure se lirait comme un anneau.
+ * Un cratère se lit par deux arcs et non par un cercle : ombre du côté de la lumière,
+ * bord éclairé du côté opposé. C'est l'inverse de l'intuition, et c'est ce qui creuse.
  */
-private fun crescent(center: Offset, radius: Float): Path {
-    val disc = Path().apply {
-        addOval(Rect(center.x - radius, center.y - radius, center.x + radius, center.y + radius))
-    }
-    val shift = radius * SHADOW_OFFSET
-    val shadowRadius = radius * SHADOW_RADIUS_RATIO
-    val shadow = Path().apply {
-        addOval(
-            Rect(
-                center.x - shadowRadius + shift, center.y - shadowRadius,
-                center.x + shadowRadius + shift, center.y + shadowRadius,
-            ),
-        )
-    }
-    return Path().apply { op(disc, shadow, PathOperation.Difference) }
+private fun DrawScope.drawCrater(
+    crater: Crater,
+    center: Offset,
+    radius: Float,
+    shadow: Color,
+    light: Color,
+) {
+    val position = Offset(center.x + crater.x * radius, center.y + crater.y * radius)
+    val craterRadius = crater.radius * radius
+    val offset = craterRadius * 0.34f
+
+    drawCircle(
+        brush = Brush.radialGradient(
+            colors = listOf(shadow.copy(alpha = 0.34f * crater.depth), Color.Transparent),
+            center = Offset(position.x + offset * AstroLight.X, position.y + offset * AstroLight.Y),
+            radius = craterRadius,
+        ),
+        radius = craterRadius,
+        center = position,
+    )
+    drawCircle(
+        brush = Brush.radialGradient(
+            colors = listOf(light.copy(alpha = 0.20f * crater.depth), Color.Transparent),
+            center = Offset(position.x - offset * AstroLight.X, position.y - offset * AstroLight.Y),
+            radius = craterRadius * 0.9f,
+        ),
+        radius = craterRadius,
+        center = position,
+    )
 }

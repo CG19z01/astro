@@ -49,6 +49,7 @@ fun DayBeadLayer(
         DayBead(
             size = secondary.size,
             emphasis = 0.55f,
+            seed = materialSeed(nextCursor),
             contentDescription = PeriodLabels.title(nextCursor, locale),
             onClick = { onOpenPlanning(nextCursor.anchor) },
             modifier = Modifier.offset(x = secondary.x, y = secondary.y),
@@ -80,6 +81,7 @@ fun DayBeadLayer(
         DayBead(
             size = primary.size,
             emphasis = 1f,
+            seed = materialSeed(cursor),
             contentDescription = PeriodLabels.subtitle(cursor, locale),
             onClick = { onOpenPlanning(cursor.anchor) },
             modifier = Modifier.offset(x = primary.x, y = primary.y),
@@ -120,3 +122,11 @@ fun DayBeadLayer(
         }
     }
 }
+
+/**
+ * Graine de matière d'une bille, dérivée de sa date.
+ *
+ * Chaque journée a ainsi sa propre brume interne — la variation demandée entre billes —
+ * tout en restant stable : la même date redonne toujours la même matière.
+ */
+private fun materialSeed(cursor: TimeCursor): Int = cursor.anchor.toEpochDay().toInt()
