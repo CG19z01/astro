@@ -70,6 +70,9 @@
     <string name="ephemeris_moonrise">Lever</string>
     <string name="ephemeris_moonset">Coucher</string>
     <string name="ephemeris_illumination">Éclairement</string>
+    <string name="moon_expand_hint">Appuyez pour voir le calendrier lunaire</string>
+    <string name="moon_collapse_hint">Appuyez pour replier le calendrier lunaire</string>
+    <string name="moon_expand_label">Afficher ou masquer le calendrier lunaire</string>
     <string name="ephemeris_phase">Phase</string>
     <string name="ephemeris_waxing">Croissante</string>
     <string name="ephemeris_waning">Décroissante</string>

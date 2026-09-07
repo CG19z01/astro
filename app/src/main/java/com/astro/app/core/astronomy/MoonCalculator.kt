@@ -12,6 +12,9 @@ import kotlin.math.asin
  * se lève environ cinquante minutes plus tard chaque jour, si bien qu'environ un jour
  * sur vingt-cinq elle ne se lève pas, ou ne se couche pas, dans la journée civile.
  */
+/** Phase de la Lune : fraction éclairée et sens d'évolution. */
+data class MoonPhase(val illumination: Double, val waxing: Boolean)
+
 data class MoonEvents(
     val moonrise: Instant?,
     val moonset: Instant?,
@@ -65,6 +68,19 @@ object MoonCalculator {
             illumination = state.illumination,
             waxing = state.waxing,
         )
+    }
+
+    /**
+     * Phase de la Lune un jour donné.
+     *
+     * **Ne demande aucune coordonnée** : la phase est géocentrique, elle est la même
+     * partout sur Terre. Seuls les horaires de lever et de coucher dépendent du lieu.
+     * Un calendrier lunaire est donc affichable même sans position renseignée.
+     */
+    fun phaseOn(date: LocalDate, zone: ZoneId): MoonPhase {
+        val noon = date.atStartOfDay(zone).toInstant().plusSeconds(43_200L)
+        val state = MoonPosition.at(JulianDay.of(noon))
+        return MoonPhase(illumination = state.illumination, waxing = state.waxing)
     }
 
     /** Hauteur de la Lune au-dessus de l'horizon de référence, en degrés. */

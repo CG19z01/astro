@@ -1,4 +1,4 @@
-package com.astro.app.feature.home.components
+package com.astro.app.core.designsystem.celestial
 
 import kotlin.math.sqrt
 import kotlin.random.Random

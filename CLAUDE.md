@@ -374,7 +374,39 @@ Cette décision est à revoir si un besoin réel apparaît, pas par principe.
   différence symétrique, donc la part du disque d'ombre qui déborde est peinte aussi
   et la figure devient un anneau.
 
-## 5 sexies. Éphémérides du Soleil et de la Lune
+## 5 sexies. Éphémérides : où vit quoi
+
+**Chaque astre porte ses propres horaires, sur la page qu'il ouvre.**
+
+| Astre sur la Home | Ouvre | Contenu |
+|---|---|---|
+| La Lune | Astrologie | Texture de la Lune, lever et coucher, calendrier lunaire dépliable sur 2 mois |
+| Le Soleil | Paramètres | Texture du Soleil, lever et coucher |
+
+Les horaires de la Lune ne sont **pas** dans les Paramètres : ils appartiennent à
+l'astre par lequel on y accède (corrigé le 2026-09-07).
+
+**La matière des astres est partagée**, pas dupliquée. `core/designsystem/celestial/`
+expose `MoonOrb` et `SunOrb`, composants purement visuels employés à la fois par les
+raccourcis de la page d'accueil et par les écrans d'information : une seule définition
+de la matière, donc une Lune et un Soleil identiques partout. Les boutons de la Home
+n'ajoutent que l'interaction.
+
+**Les couleurs des astres sont indépendantes de l'ambiance** (`CelestialMaterial`).
+La Lune est de la roche grise : elle ne devient pas crème parce que la page est claire.
+Faire dériver sa matière de la couleur du ciel effaçait tout son relief sur l'ambiance
+claire, l'ombre devenant aussi pâle que la lumière. Seuls les halos restent teintés par
+la palette — ce sont eux qui rattachent l'astre à l'ambiance.
+
+**Le calendrier lunaire ne demande aucune coordonnée** : la phase est géocentrique,
+identique partout sur Terre. Seuls les horaires de lever et de coucher dépendent du lieu.
+Le calendrier reste donc consultable même sans position renseignée.
+
+Les disques de phase (`MoonPhaseGlyph`) ne sont pas des cercles partiellement remplis :
+le terminateur se projette comme une **ellipse** de demi-axe `R × |1 − 2k|`. Un simple
+remplissage donnerait une forme fausse à toutes les phases intermédiaires.
+
+## 5 septies. Calcul des éphémérides
 
 **Les horaires se calculent à partir des COORDONNÉES, pas du fuseau horaire.** Le fuseau
 ne décide que de l'heure locale d'affichage. Deux villes du même fuseau mais à des
