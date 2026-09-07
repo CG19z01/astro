@@ -11,6 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -45,6 +47,7 @@ fun SettingsScreen(
     val states by viewModel.featureStates.collectAsState()
     val preferences by viewModel.preferences.collectAsState()
     val dimens = AstroTheme.dimens
+    val palette = AstroTheme.palette
     val locale = LocaleConfig.resolve(LocalConfiguration.current.locales[0])
     var pickingZone by remember { mutableStateOf(false) }
 
@@ -77,18 +80,17 @@ fun SettingsScreen(
                         viewModel.update { it.copy(showNavigationBar = shown) }
                     }
                 }
-            }
-
-            // Ces interrupteurs décident du contenu de la barre de navigation : sans
-            // barre, la section n'a plus d'objet et disparaît avec elle.
-            if (preferences.showNavigationBar) {
-                AstroCard(modifier = Modifier.screenReveal(order = 4)) {
-                    SectionLabel(text = stringResource(R.string.settings_features_title))
-                    FeatureCatalog.definitions.filter { it.canBeDisabled }.forEachIndexed { index, definition ->
-                        SettingRow(
-                            label = stringResource(definition.titleRes),
-                            modifier = Modifier.padding(top = if (index == 0) dimens.spaceSm else 0.dp),
-                        ) {
+                // Ces interrupteurs décident du contenu de la barre : sans barre, ils
+                // n'ont plus d'objet et disparaissent avec elle.
+                if (preferences.showNavigationBar) {
+                    Text(
+                        text = stringResource(R.string.settings_features_title),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = palette.inkFaint,
+                        modifier = Modifier.padding(top = dimens.spaceLg, bottom = dimens.spaceXs),
+                    )
+                    FeatureCatalog.definitions.filter { it.canBeDisabled }.forEach { definition ->
+                        SettingRow(label = stringResource(definition.titleRes)) {
                             AstroSwitch(states[definition.id] == true) { enabled ->
                                 viewModel.setFeatureEnabled(definition.id, enabled)
                             }

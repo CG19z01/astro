@@ -411,9 +411,12 @@ remplissage donnerait une forme fausse à toutes les phases intermédiaires.
 Le Soleil est la première carte : c'est l'astre par lequel on ouvre cette page, ses
 horaires viennent donc en tête.
 
-**La section « Fonctionnalités affichées » n'apparaît que si la barre de navigation est
-active** (demandé le 2026-09-07). Ces interrupteurs décident du contenu de la barre ;
-sans barre, la section n'a plus d'objet.
+Les fonctionnalités affichées vivent **dans la carte « Affichage »**, sous l'interrupteur
+de la barre, séparées par un simple sous-titre : ce sont deux réglages du même sujet,
+et les séparer en deux cartes les faisait paraître indépendants.
+
+**Elles n'apparaissent que si la barre de navigation est active.** Ces interrupteurs
+décident du contenu de la barre ; sans barre, ils n'ont plus d'objet.
 
 **Conséquence à connaître** : ces mêmes interrupteurs pilotent aussi les raccourcis de
 la page d'accueil — la Lune, la capsule de la phrase, le dodécaèdre. Masquer la barre
