@@ -24,15 +24,14 @@ import com.astro.app.core.designsystem.components.CelestialBackground
 import com.astro.app.core.designsystem.components.SectionLabel
 import com.astro.app.core.designsystem.components.onHorizontalSwipe
 import com.astro.app.core.designsystem.components.screenReveal
-import com.astro.app.feature.home.components.CompanionBeads
-import com.astro.app.feature.home.components.DayBeadLayer
+import com.astro.app.feature.home.components.DayWheel
 import com.astro.app.feature.home.components.HomeShortcuts
 import java.time.LocalDate
 
 /**
  * Page d'accueil.
  *
- * Trois couches : le fond céleste, les billes-journées, puis les points d'entrée.
+ * Trois couches : le fond céleste, la roue des sept journées, puis les points d'entrée.
  * Un swipe horizontal déplace le curseur temporel, ce qui met les deux billes à jour.
  * Un maintien long sur le dodécaèdre ramène ce curseur sur la journée en cours.
  */
@@ -46,10 +45,8 @@ fun HomeScreen(
 ) {
     val locale = LocaleConfig.resolve(LocalConfiguration.current.locales[0])
     val cursor by viewModel.cursor.collectAsState()
-    val planningPreview by viewModel.planningPreview.collectAsState()
-    val nextPlanningPreview by viewModel.nextPlanningPreview.collectAsState()
     val planetColors by viewModel.planetColors.collectAsState()
-    val companionPlannings by viewModel.companionPlannings.collectAsState()
+    val dayPlannings by viewModel.dayPlannings.collectAsState()
 
     BoxWithConstraints(
         modifier = modifier
@@ -57,23 +54,12 @@ fun HomeScreen(
             .onHorizontalSwipe(key = cursor.scale, onSwipe = viewModel::onSwipe),
     ) {
         CelestialBackground()
-        DayBeadLayer(
+        DayWheel(
             width = maxWidth,
             height = maxHeight,
             cursor = cursor,
             locale = locale,
-            planningPreview = planningPreview,
-            nextPlanningPreview = nextPlanningPreview,
-            planetColors = planetColors,
-            onOpenPlanning = onOpenPlanning,
-            modifier = Modifier.statusBarsPadding(),
-        )
-        CompanionBeads(
-            width = maxWidth,
-            height = maxHeight,
-            cursor = cursor,
-            locale = locale,
-            plannings = companionPlannings,
+            plannings = dayPlannings,
             planetColors = planetColors,
             onOpenPlanning = onOpenPlanning,
             modifier = Modifier.statusBarsPadding(),

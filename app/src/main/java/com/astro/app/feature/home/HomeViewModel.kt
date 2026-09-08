@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.astro.app.AstroApplication
-import com.astro.app.core.config.HomeLayoutConfig
+import com.astro.app.core.config.DayWheelConfig
 import com.astro.app.core.planning.PlanningRepository
 import com.astro.app.core.settings.PlanetColors
 import com.astro.app.core.settings.SettingsRepository
@@ -46,34 +46,23 @@ class HomeViewModel(
     private val _cursor = MutableStateFlow(TimeCursor.of(TimeScale.INITIAL, today()))
     val cursor: StateFlow<TimeCursor> = _cursor.asStateFlow()
 
-    /** Planning de la période courante, suivi en continu : une écriture se voit aussitôt. */
-    val planningPreview: StateFlow<String> = _cursor
-        .flatMapLatest { current -> planning.entryFor(current.anchor) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), "")
-
     /**
-     * Planning de la période suivante. Nécessaire à la couleur de la seconde bille :
-     * une règle de mot doit pouvoir la teindre elle aussi.
+     * Plannings des sept journées de la roue, de la période courante à la sixième
+     * suivante, suivis en continu : une écriture se voit aussitôt.
+     *
+     * Ils servent au texte affiché dans chaque planète et à sa couleur, une règle de
+     * mot pouvant teindre n'importe laquelle d'entre elles.
      */
-    val nextPlanningPreview: StateFlow<String> = _cursor
-        .flatMapLatest { current -> planning.entryFor(current.next().anchor) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), "")
-
-    /**
-     * Plannings des journées portées par les planètes d'accompagnement, dans l'ordre
-     * de `HomeLayoutConfig.COMPANION_OFFSETS`. Nécessaires à leur titre et à leur
-     * couleur, une règle de mot pouvant les teindre elles aussi.
-     */
-    val companionPlannings: StateFlow<List<String>> = _cursor
+    val dayPlannings: StateFlow<List<String>> = _cursor
         .flatMapLatest { current ->
-            combine(HomeLayoutConfig.COMPANION_OFFSETS.map { offset ->
-                planning.entryFor(current.shifted(offset).anchor)
+            combine((0 until DayWheelConfig.DAY_COUNT).map { offset ->
+                planning.entryFor(current.shifted(offset.toLong()).anchor)
             }) { entries -> entries.toList() }
         }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
-            List(HomeLayoutConfig.COMPANION_OFFSETS.size) { "" },
+            List(DayWheelConfig.DAY_COUNT) { "" },
         )
 
     /** Réglages de couleur des planètes-jours. */

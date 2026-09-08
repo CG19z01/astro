@@ -138,54 +138,56 @@ Règle isolée dans `CalendarSwipeDetector`, sans dépendance à Android ni à l
 
 Trois couches superposées :
 1. `CelestialBackground` — dégradé de ciel, halos, étoiles ;
-2. `DayBeadLayer` — les deux billes-journées ;
+2. `DayWheel` — la roue des sept journées ;
 3. `HomeShortcuts` — Lune, capsule « Phrase du jour », dodécaèdre, Soleil.
 
-Les positions viennent de `core/config/HomeLayoutConfig.kt`, en **fractions d'écran** :
-`centerX` et `radius` sont des fractions de la largeur, `centerY` de la hauteur. Une
-valeur hors de [0, 1] place volontairement un élément partiellement hors écran.
+Les positions des raccourcis viennent de `core/config/HomeLayoutConfig.kt`, en
+**fractions d'écran** : `centerX` et `radius` sont des fractions de la largeur,
+`centerY` de la hauteur. Une valeur hors de [0, 1] place volontairement un élément
+partiellement hors écran.
 
 Chaque raccourci n'apparaît que si sa fonctionnalité est activée : couper l'Astrologie
 fait disparaître la Lune, pas seulement l'entrée de la barre de navigation.
 
-### Billes-journées
+### La roue des journées
 
-Une **bille-journée** est une sphère qui porte une période et son planning. Ce n'est
+Sept planètes, une par jour, de la période courante à la sixième suivante. Géométrie
+dans `core/config/DayWheelConfig.kt`.
+
+Elles sont posées sur une **ellipse** et non sur un cercle : un cercle parfait dans un
+écran en portrait sortirait du cadre sur les côtés ou resterait tassé en hauteur.
+
+**Les angles ne sont pas régulièrement espacés, et c'est voulu.** Sept planètes
+uniformément réparties donneraient un pas de 360/7 ≈ 51°, alors que les deux positions
+imposées — J+3 en haut à droite, J+4 à gauche — sont distantes d'environ 135°. Comme les
+jours se suivent sur la roue, ces deux planètes sont voisines : leur écart est fixé à
+135° et les six autres intervalles se partagent les 225° restants.
+
+Une **planète-journée** est une sphère qui porte une période et son planning. Ce n'est
 ni une carte ni un bouton : halo qui la décolle du fond, contour en dégradé qui suggère
 la courbure, intérieur à peine plus clair que le ciel. Son contenu vit à l'intérieur
 d'elle, donc elle est cliquable dans son ensemble, texte compris.
 
-Une bille peut être plus grande que l'écran et déborder — c'est ce qui donne la
-profondeur. Son contenu est donc ancré en fractions de son diamètre
-(`PRIMARY_CONTENT_X/Y`, `SECONDARY_CONTENT_X/Y`) pour rester dans la partie visible :
-le centre géométrique d'une bille n'est pas au centre de ce que l'utilisateur voit.
+La planète du jour courant est la plus grande et porte le jour, la date et le planning
+entier. Les six autres ne montrent que le jour et le début du planning tronqué à cinq
+caractères (`CompanionTitle`) : leur surface visible est réduite, y entasser davantage
+les rendrait illisibles.
 
-Aucune date n'est écrite dans l'interface : tout dérive du curseur temporel.
-Appuyer sur une bille ouvre le planning de SA date, transmise par l'argument de route.
+Une planète peut déborder de l'écran. Son contenu est donc ancré en fractions de son
+diamètre pour rester dans la partie visible : le centre géométrique d'une planète n'est
+pas au centre de ce que l'utilisateur voit.
 
-### Planètes d'accompagnement
+Les plus lointaines sont dessinées en premier, celle du jour courant en dernier : là où
+elles se chevauchent, c'est la principale qui reste au premier plan.
 
-Deux planètes supplémentaires, plus petites que la bille secondaire, posées en haut de
-l'écran : l'une près de la Lune coupée par le bord haut, l'autre coupée par le bord
-droit. Elles portent les journées **n+4 et n+5** (`COMPANION_OFFSETS`).
+Aucune date n'est écrite dans l'interface : tout dérive du curseur temporel. Appuyer sur
+une planète ouvre le planning de SA date. Toutes suivent les règles de couleur des
+planètes.
 
-Elles ne montrent que **le jour et le début du planning tronqué à cinq caractères**
-(`CompanionTitle`, fonction pure couverte par test). Leur surface visible est réduite ;
-y entasser davantage les rendrait illisibles. Un titre coupé est assumé, sans ellipse :
-c'est un fragment, pas un texte tronqué qu'on prétendrait complet.
-
-Elles sont cliquables et mènent au planning de leur propre date, et elles suivent les
-règles de couleur des planètes comme les autres.
-
-**Écart assumé avec `planetesupp.png`** : les arcs de la maquette ne laissent qu'environ
-4 % de la hauteur visible, bien trop peu pour y lire quoi que ce soit. La disposition
-est conservée — haut de l'écran, de part et d'autre, coupées par les bords — mais les
-cercles sont descendus pour dégager assez de surface. Relevé d'origine, en fractions
-d'écran : gauche (0.47, −0.05) rayon 0.155 ; droite (1.03, 0.13) rayon 0.153.
-
-Piège rencontré : « Dimanche » ne tenait pas dans la planète de droite et s'affichait
-tronqué par une ellipse. Le cercle a été décalé vers l'intérieur et la largeur de texte
-élargie — un nom de jour illisible vide la planète de son sens.
+Pièges rencontrés : au bas du cercle, les deux dernières planètes passaient derrière la
+principale et leur jour devenait illisible — leurs angles ont été remontés. Et le jour
+de la planète de gauche, largement hors écran, était rogné par le bord — son ancrage de
+contenu a été décalé vers l'intérieur.
 
 ### Le dodécaèdre
 
