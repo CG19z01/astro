@@ -30,7 +30,8 @@ data class TimeCursor(
     /** Change de temporalité en restant sur la période qui contient la date courante. */
     fun withScale(newScale: TimeScale): TimeCursor = of(newScale, anchor)
 
-    private fun shifted(steps: Long): TimeCursor {
+    /** Curseur décalé de [steps] périodes, dans un sens ou dans l'autre. */
+    fun shifted(steps: Long): TimeCursor {
         val moved = when (scale) {
             TimeScale.DAY -> anchor.plusDays(steps)
             TimeScale.WEEK -> anchor.plusWeeks(steps)

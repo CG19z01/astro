@@ -163,6 +163,30 @@ le centre géométrique d'une bille n'est pas au centre de ce que l'utilisateur 
 Aucune date n'est écrite dans l'interface : tout dérive du curseur temporel.
 Appuyer sur une bille ouvre le planning de SA date, transmise par l'argument de route.
 
+### Planètes d'accompagnement
+
+Deux planètes supplémentaires, plus petites que la bille secondaire, posées en haut de
+l'écran : l'une près de la Lune coupée par le bord haut, l'autre coupée par le bord
+droit. Elles portent les journées **n+4 et n+5** (`COMPANION_OFFSETS`).
+
+Elles ne montrent que **le jour et le début du planning tronqué à cinq caractères**
+(`CompanionTitle`, fonction pure couverte par test). Leur surface visible est réduite ;
+y entasser davantage les rendrait illisibles. Un titre coupé est assumé, sans ellipse :
+c'est un fragment, pas un texte tronqué qu'on prétendrait complet.
+
+Elles sont cliquables et mènent au planning de leur propre date, et elles suivent les
+règles de couleur des planètes comme les autres.
+
+**Écart assumé avec `planetesupp.png`** : les arcs de la maquette ne laissent qu'environ
+4 % de la hauteur visible, bien trop peu pour y lire quoi que ce soit. La disposition
+est conservée — haut de l'écran, de part et d'autre, coupées par les bords — mais les
+cercles sont descendus pour dégager assez de surface. Relevé d'origine, en fractions
+d'écran : gauche (0.47, −0.05) rayon 0.155 ; droite (1.03, 0.13) rayon 0.153.
+
+Piège rencontré : « Dimanche » ne tenait pas dans la planète de droite et s'affichait
+tronqué par une ellipse. Le cercle a été décalé vers l'intérieur et la largeur de texte
+élargie — un nom de jour illisible vide la planète de son sens.
+
 ### Le dodécaèdre
 
 **Trois comportements distincts :**

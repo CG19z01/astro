@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.astro.app.AstroApplication
+import com.astro.app.core.config.HomeLayoutConfig
 import com.astro.app.core.planning.PlanningRepository
 import com.astro.app.core.settings.PlanetColors
 import com.astro.app.core.settings.SettingsRepository
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -56,6 +58,23 @@ class HomeViewModel(
     val nextPlanningPreview: StateFlow<String> = _cursor
         .flatMapLatest { current -> planning.entryFor(current.next().anchor) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), "")
+
+    /**
+     * Plannings des journées portées par les planètes d'accompagnement, dans l'ordre
+     * de `HomeLayoutConfig.COMPANION_OFFSETS`. Nécessaires à leur titre et à leur
+     * couleur, une règle de mot pouvant les teindre elles aussi.
+     */
+    val companionPlannings: StateFlow<List<String>> = _cursor
+        .flatMapLatest { current ->
+            combine(HomeLayoutConfig.COMPANION_OFFSETS.map { offset ->
+                planning.entryFor(current.shifted(offset).anchor)
+            }) { entries -> entries.toList() }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            List(HomeLayoutConfig.COMPANION_OFFSETS.size) { "" },
+        )
 
     /** Réglages de couleur des planètes-jours. */
     val planetColors: StateFlow<PlanetColors> = settings.preferences

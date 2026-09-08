@@ -24,6 +24,7 @@ import com.astro.app.core.designsystem.components.CelestialBackground
 import com.astro.app.core.designsystem.components.SectionLabel
 import com.astro.app.core.designsystem.components.onHorizontalSwipe
 import com.astro.app.core.designsystem.components.screenReveal
+import com.astro.app.feature.home.components.CompanionBeads
 import com.astro.app.feature.home.components.DayBeadLayer
 import com.astro.app.feature.home.components.HomeShortcuts
 import java.time.LocalDate
@@ -48,6 +49,7 @@ fun HomeScreen(
     val planningPreview by viewModel.planningPreview.collectAsState()
     val nextPlanningPreview by viewModel.nextPlanningPreview.collectAsState()
     val planetColors by viewModel.planetColors.collectAsState()
+    val companionPlannings by viewModel.companionPlannings.collectAsState()
 
     BoxWithConstraints(
         modifier = modifier
@@ -62,6 +64,16 @@ fun HomeScreen(
             locale = locale,
             planningPreview = planningPreview,
             nextPlanningPreview = nextPlanningPreview,
+            planetColors = planetColors,
+            onOpenPlanning = onOpenPlanning,
+            modifier = Modifier.statusBarsPadding(),
+        )
+        CompanionBeads(
+            width = maxWidth,
+            height = maxHeight,
+            cursor = cursor,
+            locale = locale,
+            plannings = companionPlannings,
             planetColors = planetColors,
             onOpenPlanning = onOpenPlanning,
             modifier = Modifier.statusBarsPadding(),
