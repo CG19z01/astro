@@ -1,70 +1,59 @@
 package com.astro.app.core.config
 
 /**
- * Roue des sept journées.
+ * Placement des quatre planètes-journées de la page d'accueil.
  *
- * Les sept planètes sont posées sur une **ellipse** et non sur un cercle : un cercle
- * parfait dans un écran en portrait sortirait du cadre sur les côtés ou resterait
- * tassé en hauteur. Les rayons sont donc distincts, l'un en fraction de largeur,
- * l'autre en fraction de hauteur, conformément à la convention du projet.
+ * Les positions sont **relevées sur la maquette `planetesupp`** : chacun des quatre
+ * cercles dessinés y a été ajusté au moindre carré, avec un écart maximal de six pixels
+ * sur un tracé à main levée. Les valeurs ci-dessous en sont la transcription directe.
  *
- * **Les angles ne sont pas régulièrement espacés, et c'est voulu.** Sept planètes
- * réparties uniformément donneraient un pas de 360/7 ≈ 51°, alors que les deux
- * positions imposées — J+3 en haut à droite, J+4 à gauche — sont distantes d'environ
- * 135°. Comme les jours se suivent sur la roue, ces deux planètes sont voisines : leur
- * écart est donc fixé à 135°, et les six autres intervalles se partagent les 225°
- * restants, soit 37,5° chacun.
- *
- * Angles en degrés, convention mathématique : 0° à droite, 90° en haut.
+ * Les quatre cercles n'appartiennent pas à une ellipse commune et n'ont pas le même
+ * rayon : une roue paramétrée par des angles ne pouvait donc pas les exprimer. Chaque
+ * planète porte sa propre géométrie.
  */
 object DayWheelConfig {
 
-    /** Centre de la roue, en fractions d'écran. */
-    const val CENTER_X = 0.50f
-    const val CENTER_Y = 0.50f
-
-    /** Demi-axes de l'ellipse : largeur pour l'un, hauteur pour l'autre. */
-    const val RADIUS_X = 0.42f
-    const val RADIUS_Y = 0.44f
+    /**
+     * Une planète : la journée qu'elle porte, son cercle, et l'ancrage de son contenu.
+     *
+     * `centerX` et `radius` sont des fractions de la **largeur** de l'écran, `centerY`
+     * une fraction de la **hauteur** — la convention déjà employée par
+     * [HomeLayoutConfig]. Une valeur hors de [0, 1] place volontairement la planète
+     * partiellement hors écran, comme sur la maquette.
+     *
+     * `contentX` et `contentY` sont des fractions du **diamètre** de la planète. Une
+     * planète débordant de l'écran, son centre géométrique n'est pas au centre de ce
+     * que l'utilisateur voit : ces deux valeurs replacent le texte dans la partie
+     * visible, et à l'intérieur du disque, qui découpe son contenu.
+     */
+    data class PlanetSpec(
+        val offset: Int,
+        val centerX: Float,
+        val centerY: Float,
+        val radius: Float,
+        val contentX: Float,
+        val contentY: Float,
+    )
 
     /**
-     * Position angulaire de chaque journée, de la période courante à la sixième suivante.
-     * L'indice 3 est en haut à droite, l'indice 4 à gauche : les deux positions imposées.
+     * Les quatre planètes affichées, dans l'ordre des journées.
      *
-     * Les deux derniers angles ont été remontés : au bas du cercle, ces planètes
-     * passaient derrière la planète principale, bien plus grande, et leur jour n'était
-     * plus lisible.
-     */
-    val ANGLES_DEGREES = listOf(-57.5f, -20f, 17.5f, 55f, 190f, 212f, 240f)
-
-    /**
-     * Journées effectivement affichées : la courante, la suivante, J+3 et J+4.
+     * - `offset = 0` : le jour principal, le grand cercle en bas à gauche. C'est le seul
+     *   assez large pour porter le jour, sa date et le planning entier.
+     * - `offset = 1` : le jour suivant, coupé par le bord droit.
+     * - `offset = 3` : J+3, la planète en haut à droite.
+     * - `offset = 4` : J+4, la planète coupée par le haut.
      *
-     * Les angles des sept positions restent définis ci-dessus — c'est eux qui placent
-     * J+3 en haut à droite et J+4 à gauche. Seules les journées listées ici sont
-     * dessinées ; les autres positions restent vides.
-     */
-    val VISIBLE_OFFSETS = listOf(0, 1, 3, 4)
-
-    /** Rayon de la planète du jour courant. Plus grande : elle porte le planning entier. */
-    const val MAIN_RADIUS = 0.34f
-
-    /** Rayon des six autres planètes. */
-    const val PLANET_RADIUS = 0.145f
-
-    /**
-     * Ancrage du contenu dans une planète, en fraction de son diamètre.
+     * Les deux dernières sont les deux cercles marqués en vert sur la maquette.
      *
-     * Une planète peut déborder de l'écran : son centre géométrique n'est pas au centre
-     * de ce que l'utilisateur voit. Ces valeurs replacent le texte dans la partie visible.
      */
-    const val MAIN_CONTENT_X = 0.14f
-    const val MAIN_CONTENT_Y = 0.20f
-    // Marge suffisante pour que le jour de la planète de gauche, largement hors
-    // écran, ne soit pas rogné par le bord.
-    const val PLANET_CONTENT_X = 0.26f
-    const val PLANET_CONTENT_Y = 0.38f
+    val PLANETS = listOf(
+        PlanetSpec(offset = 0, centerX = 0.251f, centerY = 0.957f, radius = 0.505f, contentX = 0.30f, contentY = 0.09f),
+        PlanetSpec(offset = 1, centerX = 1.021f, centerY = 0.675f, radius = 0.293f, contentX = 0.10f, contentY = 0.42f),
+        PlanetSpec(offset = 3, centerX = 0.930f, centerY = 0.079f, radius = 0.131f, contentX = 0.10f, contentY = 0.42f),
+        PlanetSpec(offset = 4, centerX = 0.467f, centerY = 0.010f, radius = 0.143f, contentX = 0.28f, contentY = 0.48f),
+    )
 
-    /** Nombre de journées portées par la roue. */
-    val DAY_COUNT: Int get() = ANGLES_DEGREES.size
+    /** Nombre de journées dont le planning doit être chargé, indices compris. */
+    val DAY_COUNT: Int get() = PLANETS.maxOf { it.offset } + 1
 }

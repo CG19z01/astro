@@ -138,7 +138,7 @@ Règle isolée dans `CalendarSwipeDetector`, sans dépendance à Android ni à l
 
 Trois couches superposées :
 1. `CelestialBackground` — dégradé de ciel, halos, étoiles ;
-2. `DayWheel` — la roue des journées ;
+2. `DayWheel` — les quatre planètes-journées ;
 3. `HomeShortcuts` — Lune, capsule « Phrase du jour », dodécaèdre, Soleil.
 
 Les positions des raccourcis viennent de `core/config/HomeLayoutConfig.kt`, en
@@ -149,23 +149,40 @@ partiellement hors écran.
 Chaque raccourci n'apparaît que si sa fonctionnalité est activée : couper l'Astrologie
 fait disparaître la Lune, pas seulement l'entrée de la barre de navigation.
 
-### La roue des journées
+### Les quatre planètes-journées
 
-Une planète par jour. La roue définit **sept positions**, mais seules **quatre journées
-sont affichées** : la période courante, la suivante, J+3 et J+4 (`VISIBLE_OFFSETS`). Les
-trois autres positions restent vides. Géométrie dans `core/config/DayWheelConfig.kt`.
+Quatre planètes, et quatre seulement : la période courante, la suivante, J+3 et J+4.
+Leur placement est **relevé sur la maquette `planetesupp`** — chacun des quatre cercles
+dessinés y a été ajusté au moindre carré, avec un écart maximal de six pixels sur un
+tracé à main levée. Géométrie dans `core/config/DayWheelConfig.kt`.
 
-Elles sont posées sur une **ellipse** et non sur un cercle : un cercle parfait dans un
-écran en portrait sortirait du cadre sur les côtés ou resterait tassé en hauteur.
+| Journée | Place sur l'écran | Rayon (fraction de largeur) |
+|---|---|---|
+| Courante | Grand cercle en bas à gauche, coupé par le bas et par la gauche | 0,505 |
+| Suivante | Coupée par le bord droit, à mi-hauteur | 0,293 |
+| J+3 | En haut à droite | 0,131 |
+| J+4 | Coupée par le haut | 0,143 |
 
-**Les angles ne sont pas régulièrement espacés, et c'est voulu.** Sept positions
-uniformément réparties donneraient un pas de 360/7 ≈ 51°, alors que les deux positions
-imposées — J+3 en haut à droite, J+4 à gauche — sont distantes d'environ 135°. Comme les
-jours se suivent sur la roue, ces deux planètes sont voisines : leur écart est fixé à
-135° et les six autres intervalles se partagent les 225° restants.
+Les deux dernières sont les deux cercles marqués en vert sur la maquette — celles que
+l'utilisateur avait demandées « à côté de la lune ».
 
-Les angles des journées masquées sont conservés : ce sont eux qui donnent aux quatre
-journées visibles leurs positions. Les modifier déplacerait J+3 et J+4.
+**Une roue paramétrée par des angles ne pouvait pas exprimer ce placement** : les quatre
+cercles n'appartiennent pas à une ellipse commune et n'ont pas le même rayon. Chaque
+planète porte donc sa propre géométrie (`PlanetSpec`), selon la convention du projet —
+`centerX` et `radius` en fractions de largeur, `centerY` en fraction de hauteur.
+
+`centerY` est une fraction de la hauteur **disponible pour la roue**, qui exclut la barre
+d'état et la barre système : elle ne se confond pas avec la fraction relevée sur la
+maquette. Les valeurs retenues sont celles qui reproduisent à l'écran les centres
+mesurés, vérifiées par relevé des cercles sur une capture.
+
+**Deux écarts assumés avec la maquette.** Aux positions exactement relevées, les deux
+petites planètes ne laissent voir qu'un mince croissant : 126 px de large pour celle de
+droite, 51 px de haut pour celle du haut, sur un écran de 1080 × 2400. Aucun nom de jour
+n'y tient, alors que ces deux planètes doivent afficher J+3 et J+4. Leurs centres ont donc
+été ramenés vers l'intérieur jusqu'à ce que le jour soit lisible : 0,090 de largeur pour
+celle de droite, 0,123 de hauteur pour celle du haut. Rayons, ordre et positions
+relatives sont ceux de la maquette.
 
 Une **planète-journée** est une sphère qui porte une période et son planning. Ce n'est
 ni une carte ni un bouton : halo qui la décolle du fond, contour en dégradé qui suggère
@@ -173,13 +190,14 @@ la courbure, intérieur à peine plus clair que le ciel. Son contenu vit à l'in
 d'elle, donc elle est cliquable dans son ensemble, texte compris.
 
 La planète du jour courant est la plus grande et porte le jour, la date et le planning
-entier. Les autres ne montrent que le jour et le début du planning tronqué à cinq
+entier. Les trois autres ne montrent que le jour et le début du planning tronqué à cinq
 caractères (`CompanionTitle`) : leur surface visible est réduite, y entasser davantage
 les rendrait illisibles.
 
 Une planète peut déborder de l'écran. Son contenu est donc ancré en fractions de son
 diamètre pour rester dans la partie visible : le centre géométrique d'une planète n'est
-pas au centre de ce que l'utilisateur voit.
+pas au centre de ce que l'utilisateur voit. Le disque découpe son contenu, donc le texte
+doit rester à la fois visible et à l'intérieur du cercle.
 
 Les plus lointaines sont dessinées en premier, celle du jour courant en dernier : là où
 elles se chevauchent, c'est la principale qui reste au premier plan.
@@ -188,10 +206,8 @@ Aucune date n'est écrite dans l'interface : tout dérive du curseur temporel. A
 une planète ouvre le planning de SA date. Toutes suivent les règles de couleur des
 planètes.
 
-Pièges rencontrés : au bas du cercle, les deux dernières planètes passaient derrière la
-principale et leur jour devenait illisible — leurs angles ont été remontés. Et le jour
-de la planète de gauche, largement hors écran, était rogné par le bord — son ancrage de
-contenu a été décalé vers l'intérieur.
+Piège rencontré : le contenu de la planète principale, descendu avec elle en bas à
+gauche, venait toucher le bloc « heure du réveil ». Son ancrage vertical a été remonté.
 
 ### Le dodécaèdre
 

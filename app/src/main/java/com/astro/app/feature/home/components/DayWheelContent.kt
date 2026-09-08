@@ -27,15 +27,21 @@ import java.util.Locale
  * contentent d'un fragment.
  */
 @Composable
-fun MainDayContent(diameter: Dp, cursor: TimeCursor, locale: Locale, planning: String) {
+fun MainDayContent(
+    spec: DayWheelConfig.PlanetSpec,
+    diameter: Dp,
+    cursor: TimeCursor,
+    locale: Locale,
+    planning: String,
+) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
 
     Column(
         modifier = Modifier
             .offset(
-                x = diameter * DayWheelConfig.MAIN_CONTENT_X,
-                y = diameter * DayWheelConfig.MAIN_CONTENT_Y,
+                x = diameter * spec.contentX,
+                y = diameter * spec.contentY,
             )
             .widthIn(max = diameter * 0.62f),
     ) {
@@ -67,19 +73,25 @@ fun MainDayContent(diameter: Dp, cursor: TimeCursor, locale: Locale, planning: S
 }
 
 /**
- * Contenu des six autres planètes : le jour et le début du planning, tronqué.
+ * Contenu des trois autres planètes : le jour et le début du planning, tronqué.
  *
  * Leur surface visible est réduite ; y entasser davantage les rendrait illisibles.
  */
 @Composable
-fun SideDayContent(diameter: Dp, cursor: TimeCursor, locale: Locale, planning: String) {
+fun SideDayContent(
+    spec: DayWheelConfig.PlanetSpec,
+    diameter: Dp,
+    cursor: TimeCursor,
+    locale: Locale,
+    planning: String,
+) {
     val palette = AstroTheme.palette
 
     Column(
         modifier = Modifier
             .offset(
-                x = diameter * DayWheelConfig.PLANET_CONTENT_X,
-                y = diameter * DayWheelConfig.PLANET_CONTENT_Y,
+                x = diameter * spec.contentX,
+                y = diameter * spec.contentY,
             )
             .widthIn(max = diameter * 0.62f),
     ) {
