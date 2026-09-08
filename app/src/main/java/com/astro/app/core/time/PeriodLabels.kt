@@ -27,9 +27,14 @@ object PeriodLabels {
         TimeScale.YEAR -> cursor.anchor.year.toString()
     }
 
-    /** Libellé secondaire : la date complète, ou l'étendue de la période. */
+    /**
+     * Libellé secondaire : la date complète, ou l'étendue de la période.
+     *
+     * Le jour est écrit sur **deux chiffres** — « 08 septembre 2026 » et non
+     * « 8 septembre 2026 » : format demandé, et largeur stable d'un jour à l'autre.
+     */
     fun subtitle(cursor: TimeCursor, locale: Locale): String = when (cursor.scale) {
-        TimeScale.DAY -> cursor.anchor.format(pattern("d MMMM yyyy", locale))
+        TimeScale.DAY -> cursor.anchor.format(pattern("dd MMMM yyyy", locale))
 
         TimeScale.WEEK -> {
             val end = cursor.anchor.plusDays(6)

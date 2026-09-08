@@ -160,8 +160,8 @@ tracé à main levée. Géométrie dans `core/config/DayWheelConfig.kt`.
 |---|---|---|
 | Courante | Grand cercle en bas à gauche, coupé par le bas et par la gauche | 0,505 |
 | Suivante | Coupée par le bord droit, à mi-hauteur | 0,293 |
-| J+3 | En haut à droite | 0,131 |
-| J+4 | Coupée par le haut | 0,143 |
+| J+3 | En haut à droite | 0,205 |
+| J+4 | Coupée par le haut | 0,205 |
 
 Les deux dernières sont les deux cercles marqués en vert sur la maquette — celles que
 l'utilisateur avait demandées « à côté de la lune ».
@@ -176,23 +176,38 @@ d'état et la barre système : elle ne se confond pas avec la fraction relevée 
 maquette. Les valeurs retenues sont celles qui reproduisent à l'écran les centres
 mesurés, vérifiées par relevé des cercles sur une capture.
 
-**Deux écarts assumés avec la maquette.** Aux positions exactement relevées, les deux
-petites planètes ne laissent voir qu'un mince croissant : 126 px de large pour celle de
-droite, 51 px de haut pour celle du haut, sur un écran de 1080 × 2400. Aucun nom de jour
-n'y tient, alors que ces deux planètes doivent afficher J+3 et J+4. Leurs centres ont donc
-été ramenés vers l'intérieur jusqu'à ce que le jour soit lisible : 0,090 de largeur pour
-celle de droite, 0,123 de hauteur pour celle du haut. Rayons, ordre et positions
-relatives sont ceux de la maquette.
+**Écarts assumés avec la maquette.** Les trois planètes secondaires portent la date
+complète — « 08 septembre 2026 », environ 310 px, le plus long de leurs textes — et un
+extrait du planning. Aux tailles et positions exactement relevées, elles ne laissent voir
+qu'un croissant de 126 à 293 px de large : la date n'y tient pas, et pour deux d'entre
+elles ce texte est plus large que la planète entière.
+
+Elles ont donc été **agrandies et ramenées vers l'intérieur** jusqu'à ce que les trois
+lignes tiennent. Le rayon des deux plus petites passe de 0,131 et 0,143 à 0,205 ; elles
+restent plus petites que celle du jour suivant, comme sur la maquette. Ce qui est
+conservé : quelle journée occupe quelle place, l'ordre des tailles, et le bord par lequel
+chaque planète est coupée.
 
 Une **planète-journée** est une sphère qui porte une période et son planning. Ce n'est
 ni une carte ni un bouton : halo qui la décolle du fond, contour en dégradé qui suggère
 la courbure, intérieur à peine plus clair que le ciel. Son contenu vit à l'intérieur
 d'elle, donc elle est cliquable dans son ensemble, texte compris.
 
-La planète du jour courant est la plus grande et porte le jour, la date et le planning
-entier. Les trois autres ne montrent que le jour et le début du planning tronqué à cinq
-caractères (`CompanionTitle`) : leur surface visible est réduite, y entasser davantage
-les rendrait illisibles.
+**Les quatre planètes portent les mêmes informations** : le jour, sa date et le planning.
+La principale, la plus grande, ajoute l'exergue « planning du jour » et laisse trois
+lignes au planning ; les trois autres en montrent deux, leur surface visible étant plus
+réduite. La troncature à cinq caractères (`CompanionTitle`) a été supprimée le
+2026-09-08 : un fragment de cinq caractères n'est pas une information de planning.
+
+**La date s'écrit « jj mois aaaa »** — « 08 septembre 2026 » et non « 8 septembre
+2026 ». Le jour sur deux chiffres donne une largeur stable d'un jour à l'autre. Format
+posé dans `PeriodLabels.subtitle`, donc valable aussi sur la page Planning, et couvert
+par test.
+
+**La largeur du texte est bornée deux fois** : par le cercle, qui découpe son contenu, et
+par le bord droit de l'écran, qu'une planète dépasse. La plus étroite des deux l'emporte.
+Sans la seconde borne, le planning du jour suivant sortait de l'écran au lieu d'être
+coupé par une ellipse — constaté puis corrigé le 2026-09-08.
 
 Une planète peut déborder de l'écran. Son contenu est donc ancré en fractions de son
 diamètre pour rester dans la partie visible : le centre géométrique d'une planète n'est
@@ -207,7 +222,9 @@ une planète ouvre le planning de SA date. Toutes suivent les règles de couleur
 planètes.
 
 Piège rencontré : le contenu de la planète principale, descendu avec elle en bas à
-gauche, venait toucher le bloc « heure du réveil ». Son ancrage vertical a été remonté.
+gauche, venait toucher le bloc « heure du réveil ». Son ancrage vertical a été remonté,
+et `HomeLayoutConfig.WAKE_TIME_Y` est passé de 0,90 à 0,93 — sans quoi il aurait fallu
+retirer une ligne au planning, à l'inverse de ce qui est demandé.
 
 ### Le dodécaèdre
 

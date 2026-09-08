@@ -12,13 +12,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.astro.app.R
-import com.astro.app.core.config.DayWheelConfig
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.designsystem.components.SectionLabel
 import com.astro.app.core.time.PeriodLabels
 import com.astro.app.core.time.TimeCursor
-import com.astro.app.feature.home.CompanionTitle
 import java.util.Locale
+
+/**
+ * Où poser le texte dans une planète, et jusqu'où l'étendre.
+ *
+ * Le décalage est mesuré depuis le coin de la planète, la largeur est déjà bornée par
+ * le cercle et par le bord de l'écran : le contenu n'a plus à connaître la géométrie.
+ */
+data class DayContentPlacement(val x: Dp, val y: Dp, val width: Dp)
 
 /**
  * Contenu de la planète du jour courant : le jour, sa date, et son planning.
@@ -27,23 +33,14 @@ import java.util.Locale
  * contentent d'un fragment.
  */
 @Composable
-fun MainDayContent(
-    spec: DayWheelConfig.PlanetSpec,
-    diameter: Dp,
-    cursor: TimeCursor,
-    locale: Locale,
-    planning: String,
-) {
+fun MainDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Locale, planning: String) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
 
     Column(
         modifier = Modifier
-            .offset(
-                x = diameter * spec.contentX,
-                y = diameter * spec.contentY,
-            )
-            .widthIn(max = diameter * 0.62f),
+            .offset(x = place.x, y = place.y)
+            .widthIn(max = place.width),
     ) {
         Text(
             text = PeriodLabels.title(cursor, locale),
@@ -73,40 +70,43 @@ fun MainDayContent(
 }
 
 /**
- * Contenu des trois autres planètes : le jour et le début du planning, tronqué.
+ * Contenu des trois autres planètes : le jour, sa date et un extrait du planning.
  *
- * Leur surface visible est réduite ; y entasser davantage les rendrait illisibles.
+ * Elles portent les mêmes informations que la planète principale, en plus court : leur
+ * surface visible est plus réduite, le planning y est donc coupé à deux lignes et
+ * l'exergue « planning du jour » est omise, la date suffisant à situer la journée.
  */
 @Composable
-fun SideDayContent(
-    spec: DayWheelConfig.PlanetSpec,
-    diameter: Dp,
-    cursor: TimeCursor,
-    locale: Locale,
-    planning: String,
-) {
+fun SideDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Locale, planning: String) {
     val palette = AstroTheme.palette
+    val dimens = AstroTheme.dimens
 
     Column(
         modifier = Modifier
-            .offset(
-                x = diameter * spec.contentX,
-                y = diameter * spec.contentY,
-            )
-            .widthIn(max = diameter * 0.62f),
+            .offset(x = place.x, y = place.y)
+            .widthIn(max = place.width),
     ) {
         Text(
             text = PeriodLabels.title(cursor, locale),
             style = MaterialTheme.typography.labelLarge,
+            color = palette.ink,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = PeriodLabels.subtitle(cursor, locale),
+            style = MaterialTheme.typography.bodySmall,
             color = palette.inkMuted,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         Text(
-            text = CompanionTitle.of(planning),
+            text = planning.ifBlank { stringResource(R.string.home_value_unset) },
             style = MaterialTheme.typography.bodySmall,
-            color = palette.inkFaint,
-            maxLines = 1,
+            color = if (planning.isBlank()) palette.inkFaint else palette.inkMuted,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = dimens.spaceXs),
         )
     }
 }

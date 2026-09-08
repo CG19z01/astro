@@ -29,12 +29,15 @@ object HomeLayoutConfig {
     /** Le dodécaèdre, à gauche : accès à la Manifestation. */
     val dodecahedron = CircleSpec(centerX = 0.25f, centerY = 0.405f, radius = 0.155f)
 
-    /** Nombre maximal de caractères du titre affiché dans une planète de la roue. */
-    const val COMPANION_TITLE_LENGTH = 5
-
     /** Hauteur du centre de la capsule « phrase du jour ». Elle occupe la largeur utile. */
     const val PHRASE_CENTER_Y = 0.215f
 
-    /** Ligne « heure du réveil », en bas. */
-    const val WAKE_TIME_Y = 0.90f
+    /**
+     * Ligne « heure du réveil », en bas.
+     *
+     * Descendue de 0,90 à 0,93 : la planète du jour courant, passée en bas à gauche,
+     * y amenait son planning. Les trois lignes de planning passent avant ce bloc, qui
+     * n'affiche encore aucune donnée.
+     */
+    const val WAKE_TIME_Y = 0.93f
 }

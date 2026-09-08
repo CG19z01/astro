@@ -46,13 +46,39 @@ object DayWheelConfig {
      *
      * Les deux dernières sont les deux cercles marqués en vert sur la maquette.
      *
+     * `centerY` est une fraction de la hauteur **disponible pour la roue**, qui exclut
+     * la barre d'état et la barre système : elle ne se confond pas avec la fraction
+     * relevée sur la maquette. Les valeurs retenues sont celles qui reproduisent à
+     * l'écran les centres mesurés, vérifiées par relevé des cercles sur une capture.
+     *
+     * **Écarts assumés avec la maquette.** Les trois planètes secondaires portent la
+     * date complète — « 08 septembre 2026 », soit environ 310 px, le plus long de leurs
+     * textes — et un extrait du planning. Aux tailles et positions exactement relevées,
+     * elles ne laissent voir qu'un croissant de 126 à 293 px de large : la date n'y tient
+     * pas, et pour deux d'entre elles ce texte est plus large que la planète entière.
+     *
+     * Elles ont donc été **agrandies et ramenées vers l'intérieur** jusqu'à ce que les
+     * trois lignes tiennent. Le rayon des deux plus petites passe de 0,131 et 0,143 à
+     * 0,205 ; elles restent plus petites que celle du jour suivant, comme sur la
+     * maquette. Ce qui est conservé : quelle journée occupe quelle place, l'ordre des
+     * tailles, et le bord par lequel chaque planète est coupée.
      */
     val PLANETS = listOf(
-        PlanetSpec(offset = 0, centerX = 0.251f, centerY = 0.957f, radius = 0.505f, contentX = 0.30f, contentY = 0.09f),
-        PlanetSpec(offset = 1, centerX = 1.021f, centerY = 0.675f, radius = 0.293f, contentX = 0.10f, contentY = 0.42f),
-        PlanetSpec(offset = 3, centerX = 0.930f, centerY = 0.079f, radius = 0.131f, contentX = 0.10f, contentY = 0.42f),
-        PlanetSpec(offset = 4, centerX = 0.467f, centerY = 0.010f, radius = 0.143f, contentX = 0.28f, contentY = 0.48f),
+        PlanetSpec(offset = 0, centerX = 0.251f, centerY = 0.957f, radius = 0.505f, contentX = 0.30f, contentY = 0.06f),
+        PlanetSpec(offset = 1, centerX = 0.910f, centerY = 0.675f, radius = 0.293f, contentX = 0.10f, contentY = 0.36f),
+        PlanetSpec(offset = 3, centerX = 0.840f, centerY = 0.095f, radius = 0.205f, contentX = 0.10f, contentY = 0.34f),
+        PlanetSpec(offset = 4, centerX = 0.467f, centerY = 0.014f, radius = 0.205f, contentX = 0.10f, contentY = 0.50f),
     )
+
+    /**
+     * Largeur du texte, en fraction du diamètre de la planète.
+     *
+     * Le disque découpe son contenu : au-delà, les lignes basses sortiraient du cercle.
+     * C'est une borne parmi deux — l'autre est le bord droit de l'écran, la planète
+     * pouvant en déborder. La plus petite des deux l'emporte.
+     */
+    const val MAIN_CONTENT_WIDTH = 0.62f
+    const val SIDE_CONTENT_WIDTH = 0.70f
 
     /** Nombre de journées dont le planning doit être chargé, indices compris. */
     val DAY_COUNT: Int get() = PLANETS.maxOf { it.offset } + 1

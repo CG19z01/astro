@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import com.astro.app.core.config.DayWheelConfig
+import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.settings.PlanetColorResolver
 import com.astro.app.core.settings.PlanetColors
 import com.astro.app.core.time.PeriodLabels
@@ -40,6 +41,8 @@ fun DayWheel(
     onOpenPlanning: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val dimens = AstroTheme.dimens
+
     Box(modifier = modifier.fillMaxSize()) {
         // Les journées les plus lointaines sont posées d'abord : celle du jour courant,
         // dessinée en dernier, reste au premier plan là où elles se chevauchent.
@@ -48,6 +51,11 @@ fun DayWheel(
             val text = plannings.getOrElse(spec.offset) { "" }
             val main = spec.offset == 0
             val diameter = width * spec.radius * 2f
+            val left = width * spec.centerX - diameter / 2f + diameter * spec.contentX
+            val factor = if (main) DayWheelConfig.MAIN_CONTENT_WIDTH else DayWheelConfig.SIDE_CONTENT_WIDTH
+            // Deux bornes : le cercle, qui découpe son contenu, et le bord droit de
+            // l'écran, qu'une planète peut dépasser. La plus étroite l'emporte.
+            val contentWidth = minOf(diameter * factor, width - left - dimens.spaceMd)
 
             DayBead(
                 size = diameter,
@@ -63,10 +71,11 @@ fun DayWheel(
                     y = height * spec.centerY - diameter / 2f,
                 ),
             ) {
+                val place = DayContentPlacement(diameter * spec.contentX, diameter * spec.contentY, contentWidth)
                 if (main) {
-                    MainDayContent(spec = spec, diameter = diameter, cursor = target, locale = locale, planning = text)
+                    MainDayContent(place = place, cursor = target, locale = locale, planning = text)
                 } else {
-                    SideDayContent(spec = spec, diameter = diameter, cursor = target, locale = locale, planning = text)
+                    SideDayContent(place = place, cursor = target, locale = locale, planning = text)
                 }
             }
         }
