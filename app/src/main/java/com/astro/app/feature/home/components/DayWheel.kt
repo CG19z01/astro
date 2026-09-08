@@ -21,8 +21,10 @@ import kotlin.math.sin
 private const val SIDE_EMPHASIS = 0.45f
 
 /**
- * Roue des sept journées : une planète par jour, de la période courante à la sixième
- * suivante, posées sur une ellipse qui épouse l'écran.
+ * Roue des journées : une planète par jour, posée sur une ellipse qui épouse l'écran.
+ *
+ * Seules les journées de `VISIBLE_OFFSETS` sont dessinées — la courante, la suivante,
+ * J+3 et J+4. Les autres positions de la roue restent vides.
  *
  * La planète du jour courant est la plus grande et porte son planning entier ; les six
  * autres ne montrent que le jour et le début du planning tronqué, leur surface visible
@@ -45,7 +47,7 @@ fun DayWheel(
     Box(modifier = modifier.fillMaxSize()) {
         // Les planètes les plus lointaines sont posées d'abord : celle du jour courant,
         // dessinée en dernier, reste au premier plan là où elles se chevauchent.
-        DayWheelConfig.ANGLES_DEGREES.indices.sortedDescending().forEach { offset ->
+        DayWheelConfig.VISIBLE_OFFSETS.sortedDescending().forEach { offset ->
             val target = cursor.shifted(offset.toLong())
             val text = plannings.getOrElse(offset) { "" }
             val main = offset == 0

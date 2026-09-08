@@ -37,6 +37,15 @@ object DayWheelConfig {
      */
     val ANGLES_DEGREES = listOf(-57.5f, -20f, 17.5f, 55f, 190f, 212f, 240f)
 
+    /**
+     * Journées effectivement affichées : la courante, la suivante, J+3 et J+4.
+     *
+     * Les angles des sept positions restent définis ci-dessus — c'est eux qui placent
+     * J+3 en haut à droite et J+4 à gauche. Seules les journées listées ici sont
+     * dessinées ; les autres positions restent vides.
+     */
+    val VISIBLE_OFFSETS = listOf(0, 1, 3, 4)
+
     /** Rayon de la planète du jour courant. Plus grande : elle porte le planning entier. */
     const val MAIN_RADIUS = 0.34f
 

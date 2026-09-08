@@ -138,7 +138,7 @@ Règle isolée dans `CalendarSwipeDetector`, sans dépendance à Android ni à l
 
 Trois couches superposées :
 1. `CelestialBackground` — dégradé de ciel, halos, étoiles ;
-2. `DayWheel` — la roue des sept journées ;
+2. `DayWheel` — la roue des journées ;
 3. `HomeShortcuts` — Lune, capsule « Phrase du jour », dodécaèdre, Soleil.
 
 Les positions des raccourcis viennent de `core/config/HomeLayoutConfig.kt`, en
@@ -151,17 +151,21 @@ fait disparaître la Lune, pas seulement l'entrée de la barre de navigation.
 
 ### La roue des journées
 
-Sept planètes, une par jour, de la période courante à la sixième suivante. Géométrie
-dans `core/config/DayWheelConfig.kt`.
+Une planète par jour. La roue définit **sept positions**, mais seules **quatre journées
+sont affichées** : la période courante, la suivante, J+3 et J+4 (`VISIBLE_OFFSETS`). Les
+trois autres positions restent vides. Géométrie dans `core/config/DayWheelConfig.kt`.
 
 Elles sont posées sur une **ellipse** et non sur un cercle : un cercle parfait dans un
 écran en portrait sortirait du cadre sur les côtés ou resterait tassé en hauteur.
 
-**Les angles ne sont pas régulièrement espacés, et c'est voulu.** Sept planètes
+**Les angles ne sont pas régulièrement espacés, et c'est voulu.** Sept positions
 uniformément réparties donneraient un pas de 360/7 ≈ 51°, alors que les deux positions
 imposées — J+3 en haut à droite, J+4 à gauche — sont distantes d'environ 135°. Comme les
 jours se suivent sur la roue, ces deux planètes sont voisines : leur écart est fixé à
 135° et les six autres intervalles se partagent les 225° restants.
+
+Les angles des journées masquées sont conservés : ce sont eux qui donnent aux quatre
+journées visibles leurs positions. Les modifier déplacerait J+3 et J+4.
 
 Une **planète-journée** est une sphère qui porte une période et son planning. Ce n'est
 ni une carte ni un bouton : halo qui la décolle du fond, contour en dégradé qui suggère
@@ -169,7 +173,7 @@ la courbure, intérieur à peine plus clair que le ciel. Son contenu vit à l'in
 d'elle, donc elle est cliquable dans son ensemble, texte compris.
 
 La planète du jour courant est la plus grande et porte le jour, la date et le planning
-entier. Les six autres ne montrent que le jour et le début du planning tronqué à cinq
+entier. Les autres ne montrent que le jour et le début du planning tronqué à cinq
 caractères (`CompanionTitle`) : leur surface visible est réduite, y entasser davantage
 les rendrait illisibles.
 
