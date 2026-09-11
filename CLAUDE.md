@@ -18,6 +18,9 @@ Fichier de référence du projet. À maintenir à jour à chaque décision techn
 ## 2. Environnement de développement (vérifié le 2026-09-06)
 
 - Répertoire projet : `/mnt/c/Users/cgill/astro` (= `C:\Users\cgill\astro`)
+- Dépôt GitHub **public** : https://github.com/CG19z01/astro (remote `origin`, créé le
+  2026-09-11). Le `README.md` y sert de vitrine : le tenir à jour si la stack ou l'état
+  du projet changent. Capture de l'accueil dans `docs/screenshots/accueil.png`.
 - Shell agent : WSL2 Ubuntu. Interop vers Windows : **fonctionnel**.
 - Android Studio : `AI-261.23567.138` (2026.1.1), JDK 21 embarqué (`.../Android Studio/jbr`).
 - Android SDK : `C:\Users\cgill\AppData\Local\Android\Sdk` — plateformes `android-36.1`
