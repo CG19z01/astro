@@ -2,7 +2,7 @@ package com.astro.app.feature.planning
 
 import androidx.lifecycle.SavedStateHandle
 import com.astro.app.core.planning.PlanningCodec
-import com.astro.app.core.planning.PlanningEntry
+import com.astro.app.core.planning.DayPlanning
 import com.astro.app.core.planning.PlanningRepository
 import com.astro.app.navigation.PLANNING_DATE_ARG
 import java.time.LocalDate
@@ -22,20 +22,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-
-/** Stockage en mémoire, au format réel : on y lit ce qui serait écrit sur le disque. */
-private class MemoryPlanning(initial: String) : PlanningRepository {
-    val raw = MutableStateFlow(initial)
-    var writes = 0
-    override fun entryFor(date: LocalDate): Flow<String> = entriesFor(date).map(PlanningCodec::display)
-    override fun entriesFor(date: LocalDate) = raw.map(PlanningCodec::decode)
-    override fun allEntries(): Flow<Map<LocalDate, String>> = raw.map { emptyMap() }
-    override suspend fun save(date: LocalDate, text: String) = saveEntries(date, PlanningCodec.decode(text))
-    override suspend fun saveEntries(date: LocalDate, entries: List<PlanningEntry>) {
-        writes++
-        raw.value = PlanningCodec.encode(entries)
-    }
-}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlanningViewModelTest {

@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.astro.app.R
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.feature.settings.LocationRequest
@@ -87,4 +88,35 @@ fun locationRequestHint(state: LocationRequest): Int = when (state) {
     LocationRequest.LOADING -> R.string.settings_location_loading
     LocationRequest.UNAVAILABLE -> R.string.settings_location_unavailable
     LocationRequest.DENIED -> R.string.settings_location_denied
+}
+
+/**
+ * D'où vient la position : celle de la session si elle existe (avec de quoi l'oublier),
+ * sinon la proposition d'utiliser celle de l'appareil.
+ */
+@Composable
+fun LocationSourceRow(
+    hasSessionPoint: Boolean,
+    request: LocationRequest,
+    onForget: () -> Unit,
+    onGranted: () -> Unit,
+    onDenied: () -> Unit,
+) {
+    if (hasSessionPoint) {
+        SessionLocationRow(
+            label = stringResource(R.string.settings_location_active),
+            description = stringResource(R.string.settings_location_active_hint),
+            forgetLabel = stringResource(R.string.settings_location_forget),
+            onForget = onForget,
+        )
+    } else {
+        DeviceLocationRow(
+            label = stringResource(R.string.settings_use_device_location),
+            description = stringResource(locationRequestHint(request)),
+            actionLabel = stringResource(R.string.settings_device_location_action),
+            enabled = request != LocationRequest.LOADING,
+            onGranted = onGranted,
+            onDenied = onDenied,
+        )
+    }
 }

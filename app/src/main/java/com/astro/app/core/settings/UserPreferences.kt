@@ -1,6 +1,7 @@
 package com.astro.app.core.settings
 
 import com.astro.app.core.config.CalendarConfig
+import com.astro.app.core.config.PlanningConfig
 import com.astro.app.core.time.TimeScale
 import java.time.ZoneId
 
@@ -32,6 +33,8 @@ data class UserPreferences(
     val showFullMoons: Boolean = CalendarConfig.DEFAULT_SHOW_FULL_MOONS,
     /** Marquer d'une bulle les jours dont le planning contient du texte. */
     val showPlanningMarkers: Boolean = CalendarConfig.DEFAULT_SHOW_PLANNING_MARKERS,
+    /** Sur l'accueil, les notes sans heure en haut (`true`) ou en bas des notes à heure. */
+    val untimedNotesFirst: Boolean = PlanningConfig.DEFAULT_UNTIMED_FIRST,
 ) {
     /** `true` si une position exploitable est renseignée. */
     val hasLocation: Boolean get() = latitude != null && longitude != null

@@ -10,14 +10,13 @@ import androidx.compose.ui.unit.Dp
 import com.astro.app.core.config.DayWheelConfig
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.planning.PlanningCodec
-import com.astro.app.core.planning.PlanningEntry
+import com.astro.app.core.planning.DayPlanning
 import com.astro.app.core.planning.PlanningOrder
 import com.astro.app.core.settings.PlanetColorResolver
 import com.astro.app.core.settings.PlanetColors
 import com.astro.app.core.time.PeriodLabels
 import com.astro.app.core.time.TimeCursor
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.Locale
 
 /** Atténuation des planètes autres que celle du jour courant. */
@@ -28,7 +27,8 @@ private const val SIDE_EMPHASIS = 0.45f
  * J+4, placées d'après la maquette `planetesupp`.
  *
  * Chaque planète porte le jour, sa date et ses messages, qui défilent sous le doigt
- * ([PlanetMessages]) dans l'ordre de [PlanningOrder] : à venir, passés, puis sans heure.
+ * ([PlanetMessages]) dans l'ordre de [PlanningOrder] : manuel s'il a été choisi, sinon
+ * par heure, les notes sans heure en haut ou en bas selon le réglage.
  *
  * Aucune date n'est écrite ici : tout dérive du curseur temporel. Chaque planète est
  * cliquable et mène au planning de SA date.
@@ -39,9 +39,9 @@ fun DayWheel(
     height: Dp,
     cursor: TimeCursor,
     locale: Locale,
-    plannings: List<List<PlanningEntry>>,
-    /** Instant présent, à la minute : décide quels messages sont déjà passés. */
-    now: LocalDateTime,
+    plannings: List<DayPlanning>,
+    /** Notes sans heure en haut plutôt qu'en bas, hors ordre manuel. */
+    untimedFirst: Boolean,
     planetColors: PlanetColors,
     onOpenPlanning: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
@@ -53,10 +53,10 @@ fun DayWheel(
         // dessinée en dernier, reste au premier plan là où elles se chevauchent.
         DayWheelConfig.PLANETS.sortedByDescending { it.offset }.forEach { spec ->
             val target = cursor.shifted(spec.offset.toLong())
-            val entries = plannings.getOrElse(spec.offset) { emptyList() }
-            // La couleur suit le texte enregistré ; l'affichage, l'ordre des heures.
-            val text = PlanningCodec.display(entries)
-            val shown = PlanningCodec.display(PlanningOrder.forDisplay(entries, target.anchor, now))
+            val day = plannings.getOrElse(spec.offset) { DayPlanning() }
+            // La couleur suit le texte enregistré ; l'affichage, l'ordre de PlanningOrder.
+            val text = PlanningCodec.display(day.entries)
+            val shown = PlanningCodec.display(PlanningOrder.forDisplay(day, untimedFirst))
             val main = spec.offset == 0
             val diameter = width * spec.radius * 2f
             val left = width * spec.centerX - diameter / 2f + diameter * spec.contentX
@@ -80,10 +80,18 @@ fun DayWheel(
                 ),
             ) {
                 val place = DayContentPlacement(diameter * spec.contentX, diameter * spec.contentY, contentWidth)
+                // Zone des messages placée à part, quand la configuration le demande.
+                val messages = if (spec.messagesX != null && spec.messagesY != null) {
+                    val messagesLeft = width * spec.centerX - diameter / 2f + diameter * spec.messagesX
+                    val messagesWidth = minOf(diameter * factor, width - messagesLeft - dimens.spaceMd)
+                    DayContentPlacement(diameter * spec.messagesX, diameter * spec.messagesY, messagesWidth)
+                } else {
+                    null
+                }
                 if (main) {
                     MainDayContent(place, target, locale, planning = shown, lines = spec.messageLines)
                 } else {
-                    SideDayContent(place, target, locale, planning = shown, lines = spec.messageLines)
+                    SideDayContent(place, target, locale, shown, spec.messageLines, messages)
                 }
             }
         }

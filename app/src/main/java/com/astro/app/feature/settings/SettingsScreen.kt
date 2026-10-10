@@ -23,20 +23,19 @@ import com.astro.app.core.designsystem.components.AstroScreen
 import com.astro.app.core.designsystem.components.screenReveal
 import com.astro.app.core.location.ObservationPoints
 import com.astro.app.feature.settings.components.CalendarSection
-import com.astro.app.feature.settings.components.DeviceLocationRow
+import com.astro.app.feature.settings.components.LocationSourceRow
+import com.astro.app.feature.settings.components.PlanningSection
 import com.astro.app.feature.settings.components.DisplaySection
 import com.astro.app.feature.settings.components.PlanetColorSection
-import com.astro.app.feature.settings.components.SessionLocationRow
 import com.astro.app.feature.settings.components.EphemerisSection
 import com.astro.app.feature.settings.components.LocationSection
 import com.astro.app.feature.settings.components.ZonePickerDialog
-import com.astro.app.feature.settings.components.locationRequestHint
 
 /**
  * Page Paramètres, atteinte en appuyant sur le Soleil.
  *
- * Sections : éphémérides du Soleil, affichage, Calendrier, couleur des planètes-jours,
- * lieu d'observation. Chaque nouvelle famille de réglages viendra s'ajouter sous la même forme.
+ * Sections : éphémérides du Soleil, affichage, Calendrier, notes de l'accueil, couleur
+ * des planètes-jours, lieu d'observation. Chaque nouvelle famille de réglages viendra s'ajouter sous la même forme.
  */
 @Composable
 fun SettingsScreen(
@@ -86,11 +85,17 @@ fun SettingsScreen(
                 modifier = Modifier.screenReveal(order = 4),
             )
 
+            PlanningSection(
+                preferences = preferences,
+                onChange = viewModel::update,
+                modifier = Modifier.screenReveal(order = 5),
+            )
+
             PlanetColorSection(
                 colors = preferences.planetColors,
                 locale = locale,
                 onChange = { updated -> viewModel.update { it.copy(planetColors = updated) } },
-                modifier = Modifier.screenReveal(order = 5),
+                modifier = Modifier.screenReveal(order = 6),
             )
 
             LocationSection(
@@ -109,25 +114,15 @@ fun SettingsScreen(
                     viewModel.update { it.copy(longitude = UserPreferences.validLongitude(text.toDoubleOrNull())) }
                 },
                 onPickZone = { pickingZone = true },
-                modifier = Modifier.screenReveal(order = 6),
+                modifier = Modifier.screenReveal(order = 7),
             ) {
-                if (sessionPoint != null) {
-                    SessionLocationRow(
-                        label = stringResource(R.string.settings_location_active),
-                        description = stringResource(R.string.settings_location_active_hint),
-                        forgetLabel = stringResource(R.string.settings_location_forget),
-                        onForget = viewModel::forgetDeviceLocation,
-                    )
-                } else {
-                    DeviceLocationRow(
-                        label = stringResource(R.string.settings_use_device_location),
-                        description = stringResource(locationRequestHint(locationRequest)),
-                        actionLabel = stringResource(R.string.settings_device_location_action),
-                        enabled = locationRequest != LocationRequest.LOADING,
-                        onGranted = viewModel::requestDeviceLocation,
-                        onDenied = viewModel::onLocationDenied,
-                    )
-                }
+                LocationSourceRow(
+                    hasSessionPoint = sessionPoint != null,
+                    request = locationRequest,
+                    onForget = viewModel::forgetDeviceLocation,
+                    onGranted = viewModel::requestDeviceLocation,
+                    onDenied = viewModel::onLocationDenied,
+                )
             }
         }
     }

@@ -1,6 +1,6 @@
 package com.astro.app.feature.planning
 
-import com.astro.app.core.planning.PlanningEntry
+import com.astro.app.core.planning.DayPlanning
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -15,26 +15,26 @@ import kotlinx.coroutines.sync.withLock
  * Indépendant de Compose et d'Android : testable en test unitaire JVM.
  */
 class PlanningAutosave(
-    private val write: suspend (List<PlanningEntry>) -> Unit,
+    private val write: suspend (DayPlanning) -> Unit,
 ) {
     private val lock = Mutex()
     private var lastWritten = 0L
     private var lastRequested = 0L
-    private var pending: List<PlanningEntry>? = null
+    private var pending: DayPlanning? = null
 
     /** Note un nouvel état à enregistrer ; renvoie sa révision. */
     @Synchronized
-    fun request(entries: List<PlanningEntry>): Long {
+    fun request(day: DayPlanning): Long {
         lastRequested += 1
-        pending = entries
+        pending = day
         return lastRequested
     }
 
     /** Écrit l'état de [revision] s'il est toujours le plus récent à écrire. */
-    suspend fun persist(revision: Long, entries: List<PlanningEntry>) {
+    suspend fun persist(revision: Long, day: DayPlanning) {
         lock.withLock {
             if (revision <= lastWritten) return
-            write(entries)
+            write(day)
             lastWritten = revision
         }
     }

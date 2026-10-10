@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.astro.app.AstroApplication
 import com.astro.app.core.config.PlanningConfig
+import com.astro.app.core.planning.DayPlanning
 import com.astro.app.core.planning.PlanningEntry
 import com.astro.app.core.planning.PlanningRepository
 import com.astro.app.navigation.PLANNING_DATE_ARG
@@ -59,16 +60,22 @@ class PlanningViewModel(
     private val _lines = MutableStateFlow<List<PlanningEntry>?>(null)
     val lines: StateFlow<List<PlanningEntry>?> = _lines.asStateFlow()
 
-    private val autosave = PlanningAutosave { entries -> repository.saveEntries(date, entries) }
-    private val requests = MutableStateFlow<Pair<Long, List<PlanningEntry>>?>(null)
+    /** `true` dès qu'une ligne a été déplacée à la main ; relu avec les lignes. */
+    private val _manualOrder = MutableStateFlow(false)
+    val manualOrder: StateFlow<Boolean> = _manualOrder.asStateFlow()
+
+    private val autosave = PlanningAutosave { day -> repository.saveDay(date, day) }
+    private val requests = MutableStateFlow<Pair<Long, DayPlanning>?>(null)
 
     init {
         viewModelScope.launch {
-            _lines.value = PlanningLines.fromStored(repository.entriesFor(date).first())
+            val stored = repository.dayFor(date).first()
+            _manualOrder.value = stored.manualOrder
+            _lines.value = PlanningLines.fromStored(stored.entries)
         }
         viewModelScope.launch {
-            requests.filterNotNull().debounce(autosaveDelayMillis).collect { (revision, entries) ->
-                autosave.persist(revision, entries)
+            requests.filterNotNull().debounce(autosaveDelayMillis).collect { (revision, day) ->
+                autosave.persist(revision, day)
             }
         }
     }
@@ -80,15 +87,33 @@ class PlanningViewModel(
     /** La ligne a perdu le focus : vide et au milieu, elle disparaît. */
     fun onLineLeft(id: Long) = edit { PlanningLines.dropIfEmpty(it, id) }
 
+    /** Une ligne lâchée à une nouvelle place : l'ordre devient manuel. */
+    fun onMoveLine(id: Long, toIndex: Int) {
+        val before = _lines.value ?: return
+        val after = PlanningLines.move(before, id, toIndex)
+        if (after == before) return
+        _manualOrder.value = true
+        _lines.value = after
+        save(after)
+    }
+
+    /** Revient au tri par heure sur l'accueil. L'ordre des lignes ici ne change pas. */
+    fun onResetOrder() {
+        _manualOrder.value = false
+        _lines.value?.let(::save)
+    }
+
     private fun edit(transform: (List<PlanningEntry>) -> List<PlanningEntry>) {
         val before = _lines.value ?: return
         val after = transform(before)
         _lines.value = after
-        val toPersist = PlanningLines.toPersist(after)
         // Rien à écrire si seule la ligne vide finale, ou une heure sans texte, a changé.
-        if (toPersist != PlanningLines.toPersist(before)) {
-            requests.value = autosave.request(toPersist) to toPersist
-        }
+        if (PlanningLines.toPersist(after) != PlanningLines.toPersist(before)) save(after)
+    }
+
+    private fun save(lines: List<PlanningEntry>) {
+        val day = DayPlanning(PlanningLines.toPersist(lines), _manualOrder.value)
+        requests.value = autosave.request(day) to day
     }
 
     override fun onCleared() {

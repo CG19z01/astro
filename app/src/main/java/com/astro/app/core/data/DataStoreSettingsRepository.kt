@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.emptyPreferences
 import com.astro.app.core.config.CalendarConfig
 import com.astro.app.core.config.FeatureCatalog
+import com.astro.app.core.config.PlanningConfig
 import com.astro.app.core.config.FeatureId
 import com.astro.app.core.settings.FeatureStates
 import com.astro.app.core.settings.SettingsRepository
@@ -30,6 +31,7 @@ private val LONGITUDE = doublePreferencesKey("longitude")
 private val CALENDAR_INITIAL_SCALE = stringPreferencesKey("calendar_initial_scale")
 private val SHOW_FULL_MOONS = booleanPreferencesKey("calendar_show_full_moons")
 private val SHOW_PLANNING_MARKERS = booleanPreferencesKey("calendar_show_planning_markers")
+private val UNTIMED_NOTES_FIRST = booleanPreferencesKey("home_untimed_notes_first")
 
 /**
  * Implémentation locale de [SettingsRepository], adossée à DataStore Preferences.
@@ -70,6 +72,7 @@ class DataStoreSettingsRepository(
             stored[CALENDAR_INITIAL_SCALE] = updated.calendarInitialScale.name
             stored[SHOW_FULL_MOONS] = updated.showFullMoons
             stored[SHOW_PLANNING_MARKERS] = updated.showPlanningMarkers
+            stored[UNTIMED_NOTES_FIRST] = updated.untimedNotesFirst
         }
     }
 
@@ -88,6 +91,7 @@ class DataStoreSettingsRepository(
             ?: CalendarConfig.DEFAULT_INITIAL_SCALE,
         showFullMoons = stored[SHOW_FULL_MOONS] ?: CalendarConfig.DEFAULT_SHOW_FULL_MOONS,
         showPlanningMarkers = stored[SHOW_PLANNING_MARKERS] ?: CalendarConfig.DEFAULT_SHOW_PLANNING_MARKERS,
+        untimedNotesFirst = stored[UNTIMED_NOTES_FIRST] ?: PlanningConfig.DEFAULT_UNTIMED_FIRST,
     )
 
     private fun readStored(preferences: Preferences): Map<FeatureId, Boolean> =

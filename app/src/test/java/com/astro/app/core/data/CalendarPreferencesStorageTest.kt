@@ -57,4 +57,11 @@ class CalendarPreferencesStorageTest {
         dataStore.edit { it[stringPreferencesKey("calendar_initial_scale")] = "DECENNIE" }
         assertEquals(TimeScale.MONTH, repository.preferences.first().calendarInitialScale)
     }
+
+    @Test
+    fun `le placement des notes sans heure est en bas par defaut et se conserve`() = runBlocking {
+        assertEquals(false, repository.preferences.first().untimedNotesFirst)
+        repository.updatePreferences { it.copy(untimedNotesFirst = true) }
+        assertEquals(true, repository.preferences.first().untimedNotesFirst)
+    }
 }

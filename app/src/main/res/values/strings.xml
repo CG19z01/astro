@@ -43,6 +43,11 @@
 
     <!-- Planning d'une journée -->
     <string name="planning_placeholder">Votre planning…</string>
+    <string name="planning_order_manual">Ordre choisi à la main</string>
+    <string name="planning_order_reset">Revenir au tri par heure</string>
+    <string name="planning_drag_handle">Déplacer la note</string>
+    <string name="planning_move_up">Monter la note</string>
+    <string name="planning_move_down">Descendre la note</string>
     <string name="planning_time_add">Heure</string>
     <string name="planning_time_title">Heure</string>
     <string name="planning_time_hours">Heures</string>
@@ -120,6 +125,11 @@
     <string name="calendar_full_moon_at">Pleine lune à %1$s</string>
     <string name="calendar_has_planning">planning renseigné</string>
     <string name="calendar_selected">sélectionné</string>
+
+    <!-- Notes de l'accueil -->
+    <string name="settings_notes_title">Notes</string>
+    <string name="settings_untimed_first">Notes sans heure en haut</string>
+    <string name="settings_untimed_first_hint">Sur l\'accueil, les notes sans heure passent avant les notes à heure. Désactivé, elles restent en bas.</string>
 
     <!-- Paramètres du Calendrier -->
     <string name="settings_calendar_title">Calendrier</string>

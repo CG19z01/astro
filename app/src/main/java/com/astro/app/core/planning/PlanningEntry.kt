@@ -18,3 +18,15 @@ data class PlanningEntry(
     /** Une ligne sans texte n'est pas une entrée, même si une heure lui est associée. */
     val isValid: Boolean get() = text.isNotBlank()
 }
+
+/**
+ * Le planning d'une journée : ses entrées, et la façon de les ordonner à l'affichage.
+ *
+ * [manualOrder] vaut `true` dès que l'utilisateur a déplacé une entrée à la main : la
+ * journée s'affiche alors dans l'ordre de [entries], partout. Sinon, l'accueil les trie
+ * par heure ([PlanningOrder]).
+ */
+data class DayPlanning(
+    val entries: List<PlanningEntry> = emptyList(),
+    val manualOrder: Boolean = false,
+)

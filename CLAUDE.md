@@ -259,16 +259,24 @@ deux chiffres (demandé le 2026-10-10, accueil seul : choix de l'utilisateur).
 
 **Messages défilants (2026-10-10).** Les messages d'une planète défilent sous le doigt
 (`PlanetMessages`, `verticalScroll`, fondu au bord qui cache du texte), sur une hauteur
-de `messageLines` lignes propre à chaque planète. Ordre (`PlanningOrder`, pur, testé) :
-messages à venir par heure, puis messages passés par heure, puis messages sans heure
-dans l'ordre de saisie ; tri stable. L'instant présent est relu à chaque minute
-(`rememberCurrentMinute`). Rien n'est retiré ni réécrit : l'ordre ne vaut que pour
-l'affichage. Les deux gestes cohabitent : le défilement est vertical, la navigation
-temporelle horizontale.
+de `messageLines` lignes propre à chaque planète. Les deux gestes cohabitent : le
+défilement est vertical, la navigation temporelle horizontale.
+
+**Ordre des messages** (`PlanningOrder`, pur, testé) — choix de l'utilisateur du
+2026-10-10, qui remplace la règle « les rendez-vous passés descendent » :
+- journée en **ordre manuel** (une note a été déplacée dans le Planning) : cet ordre,
+  tel quel ;
+- sinon **strictement chronologique**, tri stable, et les notes sans heure, dans leur
+  ordre de saisie, **en bas** ou **en haut** selon le réglage « Notes sans heure en
+  haut » des Paramètres (désactivé par défaut, clé `home_untimed_notes_first`).
+Rien n'est retiré ni réécrit : l'ordre ne vaut que pour l'affichage.
 
 Ajustements du 2026-10-10, demandés par l'utilisateur : J+4 (planète du haut) décalée
 vers la gauche, Lune et dodécaèdre descendus — valeurs dans `DayWheelConfig` et
-`HomeLayoutConfig`.
+`HomeLayoutConfig`. Puis, toujours à sa demande : jour de J+1 recentré et remonté, ses
+notes dans une **zone indépendante du jour** (`PlanetSpec.messagesX/messagesY`, 5 lignes,
+là où la planète est la plus large) ; J+4 remontée pour montrer 3 lignes. Contrôle par
+géométrie : chaque ligne de texte relevée sur capture reste dans la corde du disque.
 
 **La largeur du texte est bornée deux fois** : par le cercle, qui découpe son contenu, et
 par le bord droit de l'écran, qu'une planète dépasse. La plus étroite des deux l'emporte.
@@ -372,6 +380,16 @@ bouton, ni écriture disque à chaque touche.
 Une journée = une liste de `PlanningEntry` : texte d'une ligne + heure facultative.
 Sur la page, l'heure est à gauche et le texte à droite ; le texte d'aide a été retiré
 (2026-10-10).
+
+**Déplacer une note** (2026-10-10) : appui long sur la poignée (six points) ou sur la
+pastille d'heure, puis glisser. La note se soulève (léger grossissement, ombre, fond,
+retour haptique) et les autres glissent pour lui céder la place dès qu'elle a franchi
+leur moitié (`ReorderableLines`, règle pure `DragOrder`). **Pas sur le champ de texte** :
+l'appui long y appartient à Android (sélection du texte). Pour TalkBack, la poignée
+offre « Monter la note » / « Descendre la note ». La ligne vide finale ne se déplace
+pas. Un déplacement passe la journée en **ordre manuel**, enregistré dans l'en-tête
+(`\u001Eastro-planning-2-manuel`) ; « Revenir au tri par heure » l'annule sans toucher
+aux notes. Limite : pas de défilement automatique en glissant vers un bord.
 Heure choisie sur deux roues (`WheelPicker`, LazyColumn + snapping de Foundation, aucune
 dépendance) : heures 00-23, minutes de 5 en 5 (`PlanningConfig`). Aucune heure par
 défaut ; « Retirer l'heure » la supprime. Ordre de saisie conservé, aucun tri.
@@ -782,8 +800,8 @@ Compilation (depuis WSL), **commande vérifiée le 2026-09-06** :
 `cmd.exe /c "cd /d C:\Users\cgill\astro && gradlew.bat assembleDebug"`
 
 Dernier résultat constaté (2026-10-10, planning en lignes) : `assembleDebug` et
-`testDebugUnitTest` en `BUILD SUCCESSFUL`, **188 tests unitaires, 0 échec, 0 erreur,
-0 ignoré** (après les ajustements de l'après-midi : messages défilants, fonds) ; fichier source le plus long = 148 lignes (`SettingsScreen.kt`).
+`testDebugUnitTest` en `BUILD SUCCESSFUL`, **201 tests unitaires, 0 échec, 0 erreur,
+0 ignoré** (après l'ordre manuel et le réglage des notes sans heure) ; fichier source le plus long = 148 lignes (`SettingsScreen.kt`).
 
 Résultat du 2026-10-09 (Calendrier) : 137 tests, 0 échec.
 

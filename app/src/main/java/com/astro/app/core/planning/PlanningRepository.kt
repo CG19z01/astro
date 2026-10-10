@@ -2,6 +2,7 @@ package com.astro.app.core.planning
 
 import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 /**
  * Planning associé à une date.
@@ -18,8 +19,11 @@ interface PlanningRepository {
      */
     fun entryFor(date: LocalDate): Flow<String>
 
-    /** Entrées du planning de cette date, dans l'ordre de saisie. Liste vide s'il n'y a rien. */
-    fun entriesFor(date: LocalDate): Flow<List<PlanningEntry>>
+    /** Planning de cette date : entrées dans l'ordre enregistré, et choix d'ordre. */
+    fun dayFor(date: LocalDate): Flow<DayPlanning>
+
+    /** Entrées du planning de cette date, dans l'ordre enregistré. Liste vide s'il n'y a rien. */
+    fun entriesFor(date: LocalDate): Flow<List<PlanningEntry>> = dayFor(date).map { it.entries }
 
     /**
      * Tous les plannings enregistrés, indexés par date. Ne contient que des textes non
@@ -37,5 +41,8 @@ interface PlanningRepository {
     suspend fun save(date: LocalDate, text: String)
 
     /** Enregistre les entrées. Les lignes sans texte sont omises ; sans entrée, le planning est effacé. */
-    suspend fun saveEntries(date: LocalDate, entries: List<PlanningEntry>)
+    suspend fun saveDay(date: LocalDate, day: DayPlanning)
+
+    /** Enregistre des entrées en ordre automatique. */
+    suspend fun saveEntries(date: LocalDate, entries: List<PlanningEntry>) = saveDay(date, DayPlanning(entries))
 }

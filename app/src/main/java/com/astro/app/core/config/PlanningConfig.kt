@@ -12,6 +12,9 @@ object PlanningConfig {
      */
     const val AUTOSAVE_DELAY_MILLIS: Long = 600L
 
+    /** Les notes sans heure s'affichent en bas tant que l'utilisateur n'a rien choisi. */
+    const val DEFAULT_UNTIMED_FIRST: Boolean = false
+
     /** Heures proposées par la roue : de 00 à 23, de 1 en 1. */
     val HOURS: List<Int> = (0..23).toList()
 
@@ -30,6 +33,12 @@ object PlanningConfig {
      * largeur, et les champs se décalaient d'une ligne à l'autre (constaté sur émulateur).
      */
     val TIME_CHIP_WIDTH: Dp = 80.dp
+
+    /** Grossissement d'une note saisie pour être déplacée : elle « se soulève ». */
+    const val DRAG_LIFT_SCALE: Float = 1.03f
+
+    /** Ombre portée de la note soulevée. */
+    val DRAG_ELEVATION: Dp = 10.dp
 
     /** Valeurs visibles à la fois sur une roue : celle du centre, et une de part et d'autre. */
     const val WHEEL_VISIBLE_ITEMS: Int = 3

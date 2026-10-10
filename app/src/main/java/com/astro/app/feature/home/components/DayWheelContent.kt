@@ -71,7 +71,15 @@ fun MainDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Local
  * surface visible est plus réduite, la zone de défilement y est donc plus basse.
  */
 @Composable
-fun SideDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Locale, planning: String, lines: Int) {
+fun SideDayContent(
+    place: DayContentPlacement,
+    cursor: TimeCursor,
+    locale: Locale,
+    planning: String,
+    lines: Int,
+    /** Zone propre aux messages ; nulle, ils suivent le jour et la date. */
+    messages: DayContentPlacement? = null,
+) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
 
@@ -94,12 +102,21 @@ fun SideDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Local
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        PlanetMessages(
-            text = planning.ifBlank { stringResource(R.string.home_value_unset) },
-            lines = lines,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (planning.isBlank()) palette.inkFaint else palette.inkMuted,
-            modifier = Modifier.padding(top = dimens.spaceXs),
-        )
+        if (messages == null) SideMessages(planning, lines, Modifier.padding(top = dimens.spaceXs))
     }
+    if (messages != null) {
+        SideMessages(planning, lines, Modifier.offset(x = messages.x, y = messages.y).widthIn(max = messages.width))
+    }
+}
+
+@Composable
+private fun SideMessages(planning: String, lines: Int, modifier: Modifier) {
+    val palette = AstroTheme.palette
+    PlanetMessages(
+        text = planning.ifBlank { stringResource(R.string.home_value_unset) },
+        lines = lines,
+        style = MaterialTheme.typography.bodySmall,
+        color = if (planning.isBlank()) palette.inkFaint else palette.inkMuted,
+        modifier = modifier,
+    )
 }

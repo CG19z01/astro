@@ -80,4 +80,18 @@ class PlanningCodecTest {
         assertEquals(legacy, PlanningCodec.display(PlanningCodec.decode(legacy)))
         assertTrue(PlanningCodec.display(PlanningCodec.decode("")).isEmpty())
     }
+
+    @Test
+    fun `l'ordre manuel est enregistre et relu`() {
+        val day = DayPlanning(listOf(entry("b"), entry("a", LocalTime.of(8, 0))), manualOrder = true)
+        val decoded = PlanningCodec.decodeDay(PlanningCodec.encodeDay(day))
+        assertTrue(decoded.manualOrder)
+        assertEquals(listOf("b", "a"), decoded.entries.map { it.text })
+    }
+
+    @Test
+    fun `une note sans ordre manuel et une ancienne note sont en ordre automatique`() {
+        assertEquals(false, PlanningCodec.decodeDay(PlanningCodec.encode(listOf(entry("a")))).manualOrder)
+        assertEquals(false, PlanningCodec.decodeDay("ancienne note").manualOrder)
+    }
 }

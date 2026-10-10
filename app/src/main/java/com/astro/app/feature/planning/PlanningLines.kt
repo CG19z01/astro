@@ -39,6 +39,20 @@ object PlanningLines {
         return if (line.text.isBlank() && line.time == null) normalized(lines - line) else lines
     }
 
+    /**
+     * Déplace une ligne à [toIndex]. La ligne vide finale ne se déplace pas et reste la
+     * dernière : on ne peut ni la saisir, ni poser une ligne après elle.
+     */
+    fun move(lines: List<PlanningEntry>, id: Long, toIndex: Int): List<PlanningEntry> {
+        val from = lines.indexOfFirst { it.id == id }
+        if (from < 0 || from == lines.lastIndex) return lines
+        val target = toIndex.coerceIn(0, lines.lastIndex - 1)
+        if (target == from) return lines
+        val moved = lines.toMutableList()
+        moved.add(target, moved.removeAt(from))
+        return moved
+    }
+
     /** Ce qui s'enregistre : les lignes qui ont du texte, ligne vide finale exclue. */
     fun toPersist(lines: List<PlanningEntry>): List<PlanningEntry> = lines.filter { it.isValid }
 

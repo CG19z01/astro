@@ -110,4 +110,24 @@ class PlanningLinesTest {
         repeat(5) { lines = PlanningLines.withText(lines, lines.last().id, "l$it") }
         assertTrue(lines.map { it.id }.toSet().size == lines.size)
     }
+
+    @Test
+    fun `deplacer une ligne garde son texte et son heure`() {
+        val lines = PlanningLines.fromStored(listOf(PlanningEntry(0, "a", nine), PlanningEntry(1, "b"), PlanningEntry(2, "c")))
+        val moved = PlanningLines.move(lines, 0, 2)
+        assertEquals(listOf("b", "c", "a", ""), texts(moved))
+        assertEquals(nine, moved[2].time)
+    }
+
+    @Test
+    fun `une ligne ne peut pas passer apres la ligne vide finale`() {
+        val lines = PlanningLines.fromStored(listOf(PlanningEntry(0, "a"), PlanningEntry(1, "b")))
+        assertEquals(listOf("b", "a", ""), texts(PlanningLines.move(lines, 0, 99)))
+    }
+
+    @Test
+    fun `la ligne vide finale ne se deplace pas`() {
+        val lines = PlanningLines.fromStored(listOf(PlanningEntry(0, "a")))
+        assertEquals(lines, PlanningLines.move(lines, lines.last().id, 0))
+    }
 }

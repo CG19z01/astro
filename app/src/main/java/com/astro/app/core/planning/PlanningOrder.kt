@@ -1,30 +1,26 @@
 package com.astro.app.core.planning
 
-import java.time.LocalDate
-import java.time.LocalDateTime
-
 /**
  * Ordre d'affichage des messages d'une journée sur l'accueil.
  *
- *  1. les messages à venir, du plus tôt au plus tard ;
- *  2. les messages dont l'heure est passée, du plus tôt au plus tard — toujours là,
- *     accessibles en faisant défiler, mais plus en tête ;
- *  3. les messages sans heure, tout en bas, dans leur ordre de saisie.
+ * - **Ordre manuel** ([DayPlanning.manualOrder]) : celui que l'utilisateur a choisi en
+ *   déplaçant les entrées, tel quel.
+ * - **Sinon** : les messages à heure du plus tôt au plus tard, et les messages sans
+ *   heure, dans leur ordre de saisie, en haut ou en bas selon le réglage
+ *   [untimedFirst]. À heure égale, l'ordre de saisie est conservé (tri stable).
  *
- * Une heure égale à l'instant présent est encore « à venir ». À heure égale, l'ordre
- * de saisie est conservé (tri stable). Rien n'est retiré ni modifié : seul l'ordre
- * change, et uniquement pour l'affichage — l'ordre enregistré reste celui de la saisie.
+ * Choix de l'utilisateur, 2026-10-10 : ordre strictement chronologique, sans faire
+ * descendre les rendez-vous déjà passés (règle abandonnée le même jour).
  *
- * Fonction pure : l'instant présent est fourni par l'appelant.
+ * Rien n'est retiré ni modifié : l'ordre ne vaut que pour l'affichage. Fonction pure.
  */
 object PlanningOrder {
 
-    fun forDisplay(entries: List<PlanningEntry>, date: LocalDate, now: LocalDateTime): List<PlanningEntry> {
-        val valid = entries.filter { it.isValid }
+    fun forDisplay(day: DayPlanning, untimedFirst: Boolean): List<PlanningEntry> {
+        val valid = day.entries.filter { it.isValid }
+        if (day.manualOrder) return valid
         val (timed, untimed) = valid.partition { it.time != null }
-        val (upcoming, past) = timed
-            .sortedBy { it.time }
-            .partition { !LocalDateTime.of(date, it.time).isBefore(now) }
-        return upcoming + past + untimed
+        val chronological = timed.sortedBy { it.time }
+        return if (untimedFirst) untimed + chronological else chronological + untimed
     }
 }

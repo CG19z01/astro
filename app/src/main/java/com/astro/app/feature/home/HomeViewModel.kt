@@ -7,7 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.astro.app.AstroApplication
 import com.astro.app.core.config.DayWheelConfig
-import com.astro.app.core.planning.PlanningEntry
+import com.astro.app.core.planning.DayPlanning
 import com.astro.app.core.planning.PlanningRepository
 import com.astro.app.core.settings.PlanetColors
 import com.astro.app.core.settings.SettingsRepository
@@ -54,17 +54,22 @@ class HomeViewModel(
      * Elles servent aux messages affichés dans chaque planète et à sa couleur, une règle
      * de mot pouvant teindre n'importe laquelle d'entre elles.
      */
-    val dayPlannings: StateFlow<List<List<PlanningEntry>>> = _cursor
+    val dayPlannings: StateFlow<List<DayPlanning>> = _cursor
         .flatMapLatest { current ->
             combine((0 until DayWheelConfig.DAY_COUNT).map { offset ->
-                planning.entriesFor(current.shifted(offset.toLong()).anchor)
+                planning.dayFor(current.shifted(offset.toLong()).anchor)
             }) { entries -> entries.toList() }
         }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
-            List(DayWheelConfig.DAY_COUNT) { emptyList() },
+            List(DayWheelConfig.DAY_COUNT) { DayPlanning() },
         )
+
+    /** Notes sans heure en haut des planètes plutôt qu'en bas (réglage des Paramètres). */
+    val untimedNotesFirst: StateFlow<Boolean> = settings.preferences
+        .map { it.untimedNotesFirst }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), false)
 
     /** Réglages de couleur des planètes-jours. */
     val planetColors: StateFlow<PlanetColors> = settings.preferences

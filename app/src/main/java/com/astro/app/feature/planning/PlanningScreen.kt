@@ -9,7 +9,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,7 +24,9 @@ import com.astro.app.core.designsystem.components.screenReveal
 import com.astro.app.core.time.PeriodLabels
 import com.astro.app.core.time.TimeCursor
 import com.astro.app.core.time.TimeScale
+import com.astro.app.feature.planning.components.ManualOrderBar
 import com.astro.app.feature.planning.components.PlanningLineRow
+import com.astro.app.feature.planning.components.ReorderableLines
 import com.astro.app.feature.planning.components.TimeWheelDialog
 import java.time.LocalTime
 
@@ -33,7 +34,7 @@ import java.time.LocalTime
  * Planning d'une journée, en lignes : un texte d'une ligne et une heure facultative.
  *
  * Les lignes vivent dans le ViewModel ; chacune est rendue sous la clé de son
- * identifiant, si bien qu'une ligne ajoutée ou retirée ne fait pas passer le curseur,
+ * identifiant ([ReorderableLines], qui permet aussi de les déplacer par appui long), si bien qu'une ligne ajoutée ou retirée ne fait pas passer le curseur,
  * le texte ou l'heure d'une ligne à une autre.
  *
  * La liste défile et laisse la place au clavier (`imePadding`) : sur un petit écran, le
@@ -49,6 +50,7 @@ fun PlanningScreen(
     val locale = LocaleConfig.resolve(LocalConfiguration.current.locales[0])
     val cursor = remember(viewModel.date) { TimeCursor.of(TimeScale.DAY, viewModel.date) }
     val lines by viewModel.lines.collectAsState()
+    val manualOrder by viewModel.manualOrder.collectAsState()
     // Ligne dont on choisit l'heure. Survit à la rotation, comme la fenêtre ouverte.
     var pickingFor by rememberSaveable { mutableStateOf<Long?>(null) }
 
@@ -65,15 +67,17 @@ fun PlanningScreen(
                 .screenReveal(order = 2),
             verticalArrangement = Arrangement.spacedBy(dimens.spaceSm),
         ) {
-            lines.orEmpty().forEach { line ->
-                key(line.id) {
-                    PlanningLineRow(
-                        line = line,
-                        onTextChange = { viewModel.onTextChange(line.id, it) },
-                        onPickTime = { pickingFor = line.id },
-                        onLeave = { viewModel.onLineLeft(line.id) },
-                    )
-                }
+            if (manualOrder) ManualOrderBar(onReset = viewModel::onResetOrder)
+            val current = lines.orEmpty()
+            ReorderableLines(lines = current, onMove = viewModel::onMoveLine) { line, handle ->
+                PlanningLineRow(
+                    line = line,
+                    onTextChange = { viewModel.onTextChange(line.id, it) },
+                    onPickTime = { pickingFor = line.id },
+                    onLeave = { viewModel.onLineLeft(line.id) },
+                    handle = handle,
+                    onNudge = { delta -> viewModel.onMoveLine(line.id, current.indexOf(line) + delta) },
+                )
             }
         }
     }

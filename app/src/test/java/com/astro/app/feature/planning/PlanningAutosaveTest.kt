@@ -1,5 +1,6 @@
 package com.astro.app.feature.planning
 
+import com.astro.app.core.planning.DayPlanning
 import com.astro.app.core.planning.PlanningEntry
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -11,12 +12,12 @@ import org.junit.Test
 /** Une sauvegarde en retard ne doit jamais écraser une saisie plus récente. */
 class PlanningAutosaveTest {
 
-    private fun entries(text: String) = listOf(PlanningEntry(0, text))
+    private fun entries(text: String) = DayPlanning(listOf(PlanningEntry(0, text)))
 
     @Test
     fun `une ecriture plus ancienne terminee apres une plus recente est ignoree`() = runBlocking {
         val written = mutableListOf<String>()
-        val autosave = PlanningAutosave { written += it.single().text }
+        val autosave = PlanningAutosave { written += it.entries.single().text }
         val old = autosave.request(entries("ancien"))
         val recent = autosave.request(entries("récent"))
         autosave.persist(recent, entries("récent"))
@@ -29,8 +30,8 @@ class PlanningAutosaveTest {
         val written = mutableListOf<String>()
         val gate = CompletableDeferred<Unit>()
         val autosave = PlanningAutosave { list ->
-            if (list.single().text == "deux") gate.await()
-            written += list.single().text
+            if (list.entries.single().text == "deux") gate.await()
+            written += list.entries.single().text
         }
         val one = autosave.request(entries("un"))
         val two = autosave.request(entries("deux"))
@@ -46,7 +47,7 @@ class PlanningAutosaveTest {
     @Test
     fun `flush ecrit le dernier etat demande une seule fois`() = runBlocking {
         val written = mutableListOf<String>()
-        val autosave = PlanningAutosave { written += it.single().text }
+        val autosave = PlanningAutosave { written += it.entries.single().text }
         autosave.request(entries("a"))
         autosave.request(entries("b"))
         autosave.flush()
@@ -57,7 +58,7 @@ class PlanningAutosaveTest {
     @Test
     fun `flush sans demande n'ecrit rien`() = runBlocking {
         val written = mutableListOf<String>()
-        PlanningAutosave { written += it.single().text }.flush()
+        PlanningAutosave { written += it.entries.single().text }.flush()
         assertEquals(emptyList<String>(), written)
     }
 }

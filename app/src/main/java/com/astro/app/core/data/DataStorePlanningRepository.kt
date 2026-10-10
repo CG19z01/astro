@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.astro.app.core.planning.PlanningCodec
-import com.astro.app.core.planning.PlanningEntry
+import com.astro.app.core.planning.DayPlanning
 import com.astro.app.core.planning.PlanningRepository
 import java.io.IOException
 import java.time.LocalDate
@@ -38,8 +38,8 @@ class DataStorePlanningRepository(
     override fun entryFor(date: LocalDate): Flow<String> =
         entriesFor(date).map(PlanningCodec::display)
 
-    override fun entriesFor(date: LocalDate): Flow<List<PlanningEntry>> =
-        preferences.map { stored -> PlanningCodec.decode(stored[keyOf(date)].orEmpty()) }
+    override fun dayFor(date: LocalDate): Flow<DayPlanning> =
+        preferences.map { stored -> PlanningCodec.decodeDay(stored[keyOf(date)].orEmpty()) }
 
     /**
      * Les plannings sont rangés parmi les autres préférences : on les reconnaît à leur
@@ -60,8 +60,8 @@ class DataStorePlanningRepository(
     override suspend fun save(date: LocalDate, text: String) =
         saveEntries(date, PlanningCodec.decode(text))
 
-    override suspend fun saveEntries(date: LocalDate, entries: List<PlanningEntry>) {
-        val encoded = PlanningCodec.encode(entries)
+    override suspend fun saveDay(date: LocalDate, day: DayPlanning) {
+        val encoded = PlanningCodec.encodeDay(day)
         dataStore.edit { stored ->
             if (encoded.isEmpty()) stored.remove(keyOf(date)) else stored[keyOf(date)] = encoded
         }

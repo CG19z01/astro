@@ -34,8 +34,9 @@ import com.astro.app.core.planning.PlanningEntry
 import java.time.format.DateTimeFormatter
 
 /**
- * Une ligne du planning : l'heure à gauche, le texte à droite (demandé le 2026-10-10) —
- * ou l'heure au-dessus quand l'écran est trop étroit ([PlanningConfig.INLINE_TIME_MIN_WIDTH]).
+ * Une ligne du planning : la poignée, l'heure, puis le texte (demandé le 2026-10-10) —
+ * ou poignée et heure au-dessus quand l'écran est trop étroit
+ * ([PlanningConfig.INLINE_TIME_MIN_WIDTH]).
  */
 @Composable
 fun PlanningLineRow(
@@ -43,6 +44,9 @@ fun PlanningLineRow(
     onTextChange: (String) -> Unit,
     onPickTime: () -> Unit,
     onLeave: () -> Unit,
+    /** Geste de déplacement (appui long), `null` pour la ligne vide finale. */
+    handle: Modifier?,
+    onNudge: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val dimens = AstroTheme.dimens
@@ -52,12 +56,16 @@ fun PlanningLineRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimens.spaceSm),
             ) {
-                TimeChip(line, onPickTime)
+                DragGrip(handle, onNudge)
+                TimeChip(line, onPickTime, handle)
                 LineField(line, onTextChange, onLeave, Modifier.weight(1f))
             }
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(dimens.spaceXs)) {
-                TimeChip(line, onPickTime)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    DragGrip(handle, onNudge)
+                    TimeChip(line, onPickTime, handle)
+                }
                 LineField(line, onTextChange, onLeave, Modifier.fillMaxWidth())
             }
         }
@@ -93,7 +101,7 @@ private fun LineField(line: PlanningEntry, onTextChange: (String) -> Unit, onLea
 
 /** L'heure de la ligne, ou une invitation à en choisir une. Appuyer ouvre les roues. */
 @Composable
-private fun TimeChip(line: PlanningEntry, onPickTime: () -> Unit) {
+private fun TimeChip(line: PlanningEntry, onPickTime: () -> Unit, handle: Modifier?) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
     val label = line.time?.format(DateTimeFormatter.ofPattern("HH:mm"))
@@ -103,7 +111,9 @@ private fun TimeChip(line: PlanningEntry, onPickTime: () -> Unit) {
         style = MaterialTheme.typography.labelLarge,
         color = if (line.time != null) palette.accentSolar else palette.inkFaint,
         textAlign = TextAlign.Center,
-        modifier = Modifier
+        // La pastille est aussi une prise : appui court pour l'heure, appui long pour
+        // déplacer la note.
+        modifier = (handle ?: Modifier)
             .width(PlanningConfig.TIME_CHIP_WIDTH)
             .heightIn(min = dimens.touchTarget)
             .border(dimens.hairline, palette.surfaceBorder, MaterialTheme.shapes.small)
