@@ -46,6 +46,14 @@ object PeriodLabels {
         TimeScale.YEAR -> cursor.anchor.format(pattern("yyyy", locale))
     }
 
+    /**
+     * Date entièrement numérique, jour et mois sur deux chiffres : « 09/10/2026 ».
+     * Employée par les planètes de l'accueil ; la page Planning et le Calendrier
+     * gardent le mois en toutes lettres de [subtitle].
+     */
+    fun numericDate(cursor: TimeCursor, locale: Locale): String =
+        cursor.anchor.format(pattern("dd/MM/yyyy", locale))
+
     /** Forme courte, pour une bille dont une partie seulement est visible. */
     fun compact(cursor: TimeCursor, locale: Locale): String = when (cursor.scale) {
         TimeScale.DAY -> cursor.anchor.format(pattern("d MMM", locale))

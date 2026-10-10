@@ -15,13 +15,17 @@ calculées directement sur l'appareil.
   ouvre le planning de la date.
 - **Dodécaèdre 3D** dessiné à la main : appui pour ouvrir la page Manifestation,
   maintien long pour revenir à aujourd'hui, qui accélère aussi sa rotation.
-- **Planning** par date, enregistré automatiquement après une pause de frappe.
+- **Planning** par date, en lignes avec une heure facultative (roues heures/minutes),
+  enregistré automatiquement après une pause de frappe.
 - **Astrologie** : lever et coucher de la Lune, calendrier lunaire sur deux mois.
 - **Paramètres** : lever et coucher du Soleil, position (saisie ou GPS), couleurs des
   planètes (semaine/week-end, par jour, ou par mot-clé du planning), activation de
   chaque fonctionnalité.
-- **Calendrier** : passage Jour → Semaine → Mois → Année par une salve de trois
-  swipes rapides.
+- **Calendrier** : vues Jour, Semaine, Mois et Année, vue d'ouverture réglable dans
+  les Paramètres. Un swipe change de période, une salve de trois swipes rapides change
+  de vue. Les pleines lunes sont signalées (calcul local, algorithme de Meeus, vérifié
+  à moins d'une minute des éphémérides de l'USNO sur 2024-2027) et une bulle marque
+  chaque jour dont le planning contient du texte.
 
 ## Stack technique
 
@@ -88,12 +92,11 @@ Sous Windows, remplacer `./gradlew` par `gradlew.bat`.
 
 ## État du projet
 
-Projet personnel en cours. 89 tests unitaires, tous au vert.
+Projet personnel en cours. 188 tests unitaires, tous au vert.
 
 Pas encore fait :
 
 - les pages **Phrases** et **Manifestation** sont des écrans d'attente ;
-- le **Calendrier** n'affiche pas encore de grille ;
 - aucune source pour la phrase du jour ni pour l'heure du réveil ;
 - aucun test instrumenté. L'interface n'a été vérifiée que sur émulateur (Pixel 8,
   API 36), jamais sur un appareil réel.

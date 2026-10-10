@@ -17,7 +17,9 @@ const val PLANNING_DATE_ARG = "date"
  * toujours sur la Home. Depuis la Home, Retour quitte l'application.
  *
  * Effet de bord voulu : quitter un écran détruit son entrée de navigation, donc son
- * état. C'est ce qui fait repartir le Calendrier en mode Jour à chaque retour.
+ * état. C'est ce qui fait repartir le Calendrier de sa vue d'ouverture à chaque retour.
+ *
+ * Seule exception : [navigateToPlanningAbove].
  */
 fun NavController.navigateToFeature(route: String) {
     if (route == FeatureCatalog.home.route) {
@@ -37,7 +39,23 @@ fun NavController.navigateToFeature(route: String) {
  * l'appareil, et sûr dans une URL de navigation.
  */
 fun NavController.navigateToPlanning(date: LocalDate) {
+    navigateToFeature(planningRoute(date))
+}
+
+/**
+ * Ouvre le planning d'une date PAR-DESSUS l'écran courant, au lieu de le remplacer.
+ *
+ * Employé par le Calendrier : on y choisit un jour, on écrit sa note, et Retour doit
+ * ramener au Calendrier tel qu'on l'a laissé — même vue, même jour sélectionné — pour
+ * y voir apparaître la bulle. La pile vaut alors « Home, Calendrier, Planning », et un
+ * second Retour ramène sur la Home comme ailleurs.
+ */
+fun NavController.navigateToPlanningAbove(date: LocalDate) {
+    navigate(planningRoute(date)) { launchSingleTop = true }
+}
+
+private fun planningRoute(date: LocalDate): String {
     val pattern = FeatureCatalog.definitionOf(FeatureId.PLANNING).route
     val encoded = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
-    navigateToFeature(pattern.replace("{$PLANNING_DATE_ARG}", encoded))
+    return pattern.replace("{$PLANNING_DATE_ARG}", encoded)
 }

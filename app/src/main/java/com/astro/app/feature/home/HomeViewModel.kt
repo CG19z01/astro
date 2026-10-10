@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.astro.app.AstroApplication
 import com.astro.app.core.config.DayWheelConfig
+import com.astro.app.core.planning.PlanningEntry
 import com.astro.app.core.planning.PlanningRepository
 import com.astro.app.core.settings.PlanetColors
 import com.astro.app.core.settings.SettingsRepository
@@ -47,22 +48,22 @@ class HomeViewModel(
     val cursor: StateFlow<TimeCursor> = _cursor.asStateFlow()
 
     /**
-     * Plannings des sept journées de la roue, de la période courante à la sixième
-     * suivante, suivis en continu : une écriture se voit aussitôt.
+     * Entrées des journées de la roue, de la période courante à la dernière affichée,
+     * suivies en continu : une écriture se voit aussitôt.
      *
-     * Ils servent au texte affiché dans chaque planète et à sa couleur, une règle de
-     * mot pouvant teindre n'importe laquelle d'entre elles.
+     * Elles servent aux messages affichés dans chaque planète et à sa couleur, une règle
+     * de mot pouvant teindre n'importe laquelle d'entre elles.
      */
-    val dayPlannings: StateFlow<List<String>> = _cursor
+    val dayPlannings: StateFlow<List<List<PlanningEntry>>> = _cursor
         .flatMapLatest { current ->
             combine((0 until DayWheelConfig.DAY_COUNT).map { offset ->
-                planning.entryFor(current.shifted(offset.toLong()).anchor)
+                planning.entriesFor(current.shifted(offset.toLong()).anchor)
             }) { entries -> entries.toList() }
         }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
-            List(DayWheelConfig.DAY_COUNT) { "" },
+            List(DayWheelConfig.DAY_COUNT) { emptyList() },
         )
 
     /** Réglages de couleur des planètes-jours. */

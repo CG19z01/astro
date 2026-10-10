@@ -34,4 +34,7 @@ data class AstroDimens(
 
     val iconSm: Dp = 18.dp,
     val iconMd: Dp = 22.dp,
+
+    /** Hauteur minimale d'un élément appuyable : la cible tactile recommandée. */
+    val touchTarget: Dp = 48.dp,
 )

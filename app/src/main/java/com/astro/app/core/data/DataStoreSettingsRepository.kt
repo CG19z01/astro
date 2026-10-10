@@ -7,11 +7,13 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.emptyPreferences
+import com.astro.app.core.config.CalendarConfig
 import com.astro.app.core.config.FeatureCatalog
 import com.astro.app.core.config.FeatureId
 import com.astro.app.core.settings.FeatureStates
 import com.astro.app.core.settings.SettingsRepository
 import com.astro.app.core.settings.UserPreferences
+import com.astro.app.core.time.TimeScale
 import java.io.IOException
 import java.time.ZoneId
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +27,9 @@ private val SHOW_NAV_BAR = booleanPreferencesKey("show_navigation_bar")
 private val ZONE_ID = stringPreferencesKey("zone_id")
 private val LATITUDE = doublePreferencesKey("latitude")
 private val LONGITUDE = doublePreferencesKey("longitude")
+private val CALENDAR_INITIAL_SCALE = stringPreferencesKey("calendar_initial_scale")
+private val SHOW_FULL_MOONS = booleanPreferencesKey("calendar_show_full_moons")
+private val SHOW_PLANNING_MARKERS = booleanPreferencesKey("calendar_show_planning_markers")
 
 /**
  * Implémentation locale de [SettingsRepository], adossée à DataStore Preferences.
@@ -62,16 +67,27 @@ class DataStoreSettingsRepository(
             updated.latitude?.let { stored[LATITUDE] = it } ?: stored.remove(LATITUDE)
             updated.longitude?.let { stored[LONGITUDE] = it } ?: stored.remove(LONGITUDE)
             stored.writePlanetColors(updated.planetColors)
+            stored[CALENDAR_INITIAL_SCALE] = updated.calendarInitialScale.name
+            stored[SHOW_FULL_MOONS] = updated.showFullMoons
+            stored[SHOW_PLANNING_MARKERS] = updated.showPlanningMarkers
         }
     }
 
-    /** Un identifiant de fuseau devenu inconnu retombe sur celui de l'appareil. */
+    /**
+     * Un identifiant de fuseau devenu inconnu retombe sur celui de l'appareil, un nom
+     * de vue inconnu sur la vue par défaut du Calendrier. La vue est stockée par son
+     * NOM et non par son rang : réordonner les vues ne changerait pas le choix enregistré.
+     */
     private fun readPreferences(stored: Preferences) = UserPreferences(
         planetColors = readPlanetColors(stored),
         showNavigationBar = stored[SHOW_NAV_BAR] ?: true,
         zoneId = stored[ZONE_ID]?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: ZoneId.systemDefault(),
         latitude = stored[LATITUDE],
         longitude = stored[LONGITUDE],
+        calendarInitialScale = TimeScale.entries.firstOrNull { it.name == stored[CALENDAR_INITIAL_SCALE] }
+            ?: CalendarConfig.DEFAULT_INITIAL_SCALE,
+        showFullMoons = stored[SHOW_FULL_MOONS] ?: CalendarConfig.DEFAULT_SHOW_FULL_MOONS,
+        showPlanningMarkers = stored[SHOW_PLANNING_MARKERS] ?: CalendarConfig.DEFAULT_SHOW_PLANNING_MARKERS,
     )
 
     private fun readStored(preferences: Preferences): Map<FeatureId, Boolean> =

@@ -1,5 +1,7 @@
 package com.astro.app.core.settings
 
+import com.astro.app.core.config.CalendarConfig
+import com.astro.app.core.time.TimeScale
 import java.time.ZoneId
 
 /**
@@ -21,6 +23,15 @@ data class UserPreferences(
     val longitude: Double? = null,
     /** Couleur des planètes-jours. */
     val planetColors: PlanetColors = PlanetColors(),
+    /**
+     * Vue du Calendrier à l'ouverture. Ne détermine QUE la vue initiale : changer de
+     * vue pendant la consultation ne la modifie pas.
+     */
+    val calendarInitialScale: TimeScale = CalendarConfig.DEFAULT_INITIAL_SCALE,
+    /** Signaler les pleines lunes dans le Calendrier. */
+    val showFullMoons: Boolean = CalendarConfig.DEFAULT_SHOW_FULL_MOONS,
+    /** Marquer d'une bulle les jours dont le planning contient du texte. */
+    val showPlanningMarkers: Boolean = CalendarConfig.DEFAULT_SHOW_PLANNING_MARKERS,
 ) {
     /** `true` si une position exploitable est renseignée. */
     val hasLocation: Boolean get() = latitude != null && longitude != null

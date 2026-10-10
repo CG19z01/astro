@@ -25,6 +25,7 @@ import com.astro.app.core.designsystem.components.SectionLabel
 import com.astro.app.core.designsystem.components.onHorizontalSwipe
 import com.astro.app.core.designsystem.components.screenReveal
 import com.astro.app.feature.home.components.DayWheel
+import com.astro.app.feature.home.components.rememberCurrentMinute
 import com.astro.app.feature.home.components.HomeShortcuts
 import java.time.LocalDate
 
@@ -47,6 +48,7 @@ fun HomeScreen(
     val cursor by viewModel.cursor.collectAsState()
     val planetColors by viewModel.planetColors.collectAsState()
     val dayPlannings by viewModel.dayPlannings.collectAsState()
+    val now by rememberCurrentMinute()
 
     BoxWithConstraints(
         modifier = modifier
@@ -60,6 +62,7 @@ fun HomeScreen(
             cursor = cursor,
             locale = locale,
             plannings = dayPlannings,
+            now = now,
             planetColors = planetColors,
             onOpenPlanning = onOpenPlanning,
             modifier = Modifier.statusBarsPadding(),

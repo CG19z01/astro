@@ -118,7 +118,11 @@ Barre de navigation basse à 5 boutons (d'après la maquette `maquette astro bas
 | Manifestation | le dodécaèdre 3D | Non |
 
 Comportement Retour : le bouton/geste Retour d'Android ramène toujours sur Home.
-Quitter le Calendrier réinitialise son affichage en mode Jour.
+**Exception unique** : un planning ouvert DEPUIS le Calendrier s'empile au-dessus de lui
+(`navigateToPlanningAbove`) ; Retour ramène alors au Calendrier tel qu'on l'a laissé, et
+un second Retour à la Home. Validé par l'utilisateur le 2026-10-09.
+Quitter le Calendrier pour une autre page le fait repartir de sa **vue d'ouverture**
+(préférence des Paramètres, Mois par défaut), centrée sur aujourd'hui.
 ### Calendrier — règle de swipe (précisée par l'utilisateur le 2026-09-06)
 
 Séquence : Jour → Semaine → Mois → Année.
@@ -133,9 +137,54 @@ Décisions complémentaires, prises faute de spécification et faciles à invers
 - un swipe en sens inverse annule la salve en cours ;
 - un déclenchement remet le compteur à zéro : 6 swipes rapides valent 2 changements.
 
-Valeurs dans `core/config/CalendarConfig.kt`, jamais dans l'écran.
-Règle isolée dans `CalendarSwipeDetector`, sans dépendance à Android ni à l'horloge
+Valeurs des gestes dans `core/config/TimeNavigationConfig.kt`, jamais dans l'écran.
+Règle isolée dans `SwipeBurstDetector`, sans dépendance à Android ni à l'horloge
 (l'instant est fourni par l'appelant), donc couverte par des tests unitaires JVM.
+
+### Calendrier — contenu (2026-10-09)
+
+Choix validés par l'utilisateur le 2026-10-09 : swipe simple = période voisine ; appui
+= sélection, second appui sur le jour sélectionné = ouverture du planning ; retour sur
+la page = vue d'ouverture centrée sur aujourd'hui ; pleines lunes et bulles
+désactivables.
+
+- **Vue d'ouverture** : préférence `calendarInitialScale` (Mois par défaut,
+  `CalendarConfig.DEFAULT_INITIAL_SCALE`), lue UNE fois à l'ouverture. Changer de vue
+  sur la page n'écrit jamais la préférence. Réglée dans la section « Calendrier » des
+  Paramètres, visible seulement si le Calendrier est activé.
+- **Jour de référence** : `CalendarState` = `TimeCursor` + jour sélectionné. Tout
+  changement de vue part du jour sélectionné, pas du début de période (sans quoi le
+  18 octobre en vue Mois donnait la semaine du 1er). Invariant : le jour sélectionné est
+  toujours dans la période affichée.
+- **Deux gestes cohabitent** (`CalendarSwipeHandler`) : un swipe simple change de
+  période ; une salve de trois change de vue. Une salve n'étant reconnue qu'au troisième
+  swipe, les deux premiers ont déjà déplacé la période : au déclenchement, on repart de
+  l'état d'avant la salve. Sens : vers l'avant (glisser à gauche) = niveau suivant.
+- **Sélecteur** `TimeScaleSelector` (`core/designsystem/components`), partagé par la
+  page et les Paramètres.
+- **Vues** : Jour (planning entier, heure de la pleine lune), Semaine (sept lignes avec
+  extrait du planning), Mois (grille), Année (12 mini-mois sur **deux** colonnes ; trois
+  faisaient se toucher les nombres, constaté sur émulateur).
+- **Marques** : une seule source, `CalendarMarks`, pour les quatre vues — un test
+  vérifie que chaque jour de 2026 porte les mêmes marques dans les quatre vues.
+  Bulle = planning non blanc, couleur de la planète-journée (`PlanetColorResolver`).
+  En vue Année, les marques passent par le chiffre (couleur, disque lunaire pâle).
+- **Notes** : lues par `PlanningRepository.allEntries()`, directement dans le stockage,
+  sans copie ; une bulle ne peut donc pas signaler une note absente.
+
+### Pleines lunes — `core/astronomy/FullMoonCalculator.kt`
+
+Algorithme de Meeus, *Astronomical Algorithms*, chapitre 49 (termes dans
+`LunarPhaseTerms.kt`). **Pas** le calcul de phase existant : chercher l'élongation de
+180° avec `MoonPosition` donne jusqu'à 16,5 min d'écart, assez pour changer le jour
+d'une pleine lune proche de minuit.
+
+Validation : 49 pleines lunes 2024-2027 publiées par l'USNO
+(`aa.usno.navy.mil/api/moon/phases/year`, interrogé le 2026-10-09) — écart maximal
+0,74 min, moyen 0,14 min. Les 25 de 2025-2026 sont dans les tests. Précision **non
+vérifiée hors 2024-2027**. ΔT fixé à 69 s (valeur des années 2020), à revoir à long
+terme. Le jour affiché est le jour civil dans le fuseau des Paramètres ; une pleine
+lune à moins d'une minute de minuit peut tomber sur le jour voisin.
 
 ## 5 bis. Page d'accueil — composition
 
@@ -197,15 +246,29 @@ la courbure, intérieur à peine plus clair que le ciel. Son contenu vit à l'in
 d'elle, donc elle est cliquable dans son ensemble, texte compris.
 
 **Les quatre planètes portent les mêmes informations** : le jour, sa date et le planning.
-La principale, la plus grande, ajoute l'exergue « planning du jour » et laisse trois
-lignes au planning ; les trois autres en montrent deux, leur surface visible étant plus
+La principale, la plus grande, laisse trois lignes au planning (son exergue « planning
+du jour » a été retirée le 2026-10-10, à la demande de l'utilisateur) ; les trois autres
+en montrent deux, leur surface visible étant plus
 réduite. La troncature à cinq caractères (`CompanionTitle`) a été supprimée le
 2026-09-08 : un fragment de cinq caractères n'est pas une information de planning.
 
-**La date s'écrit « jj mois aaaa »** — « 08 septembre 2026 » et non « 8 septembre
-2026 ». Le jour sur deux chiffres donne une largeur stable d'un jour à l'autre. Format
-posé dans `PeriodLabels.subtitle`, donc valable aussi sur la page Planning, et couvert
-par test.
+**Sur l'accueil, la date s'écrit « jj/mm/aaaa »** — « 09/10/2026 », jour et mois sur
+deux chiffres (demandé le 2026-10-10, accueil seul : choix de l'utilisateur).
+`PeriodLabels.numericDate`, couvert par test. La page Planning et le Calendrier gardent
+« jj mois aaaa » (« 08 septembre 2026 », `PeriodLabels.subtitle`).
+
+**Messages défilants (2026-10-10).** Les messages d'une planète défilent sous le doigt
+(`PlanetMessages`, `verticalScroll`, fondu au bord qui cache du texte), sur une hauteur
+de `messageLines` lignes propre à chaque planète. Ordre (`PlanningOrder`, pur, testé) :
+messages à venir par heure, puis messages passés par heure, puis messages sans heure
+dans l'ordre de saisie ; tri stable. L'instant présent est relu à chaque minute
+(`rememberCurrentMinute`). Rien n'est retiré ni réécrit : l'ordre ne vaut que pour
+l'affichage. Les deux gestes cohabitent : le défilement est vertical, la navigation
+temporelle horizontale.
+
+Ajustements du 2026-10-10, demandés par l'utilisateur : J+4 (planète du haut) décalée
+vers la gauche, Lune et dodécaèdre descendus — valeurs dans `DayWheelConfig` et
+`HomeLayoutConfig`.
 
 **La largeur du texte est bornée deux fois** : par le cercle, qui découpe son contenu, et
 par le bord droit de l'écran, qu'une planète dépasse. La plus étroite des deux l'emporte.
@@ -269,7 +332,8 @@ séparées du composant — calculer et dessiner sont deux responsabilités dist
 |---|---|---|
 | Un swipe simple | Home | Déplace le curseur DANS la temporalité courante |
 | Maintien long sur le dodécaèdre | Home | Ramène le curseur sur la journée en cours |
-| Salve de 3 swipes rapides | Calendrier | CHANGE de temporalité |
+| Un swipe simple | Calendrier | Passe à la période voisine, même vue |
+| Salve de 3 swipes rapides | Calendrier | CHANGE de temporalité (sans déplacer la période) |
 
 Cette séparation est structurelle : `TimeCursor.previous()/next()` d'un côté,
 `TimeCursor.withScale()` de l'autre, et deux détecteurs distincts.
@@ -302,6 +366,39 @@ change la langue de son téléphone ne perd rien.
 La route est paramétrée (`planning/{date}`) et la date arrive au ViewModel par
 `SavedStateHandle`. Enregistrement automatique après 600 ms de pause de frappe : ni
 bouton, ni écriture disque à chaque touche.
+
+### Planning en lignes (2026-10-10)
+
+Une journée = une liste de `PlanningEntry` : texte d'une ligne + heure facultative.
+Sur la page, l'heure est à gauche et le texte à droite ; le texte d'aide a été retiré
+(2026-10-10).
+Heure choisie sur deux roues (`WheelPicker`, LazyColumn + snapping de Foundation, aucune
+dépendance) : heures 00-23, minutes de 5 en 5 (`PlanningConfig`). Aucune heure par
+défaut ; « Retirer l'heure » la supprime. Ordre de saisie conservé, aucun tri.
+
+Règles des lignes (`PlanningLines`, pur, testé) : une seule ligne vide à la fin, créée
+dès que la précédente a du texte ; une heure seule ne crée pas de ligne ; une ligne
+intermédiaire sans texte ni heure disparaît quand on la quitte (perte de focus),
+jamais pendant la frappe. Les lignes sans texte ne sont pas enregistrées.
+
+**Stockage — une seule clé par date, pas de migration de masse.** `PlanningCodec` :
+en-tête `\u001Eastro-planning-2` (caractère de contrôle impossible à taper), puis une
+ligne par entrée, heure sur 5 caractères (`09:30` ou `--:--`) + texte. Une valeur SANS
+en-tête est une ancienne note : chaque ligne non blanche devient une entrée sans heure
+(choix de l'utilisateur). Lire ne réécrit rien ; une note n'est convertie que lorsqu'on
+la modifie.
+
+`entryFor` et `allEntries` rendent le texte lisible (`PlanningCodec.display` :
+« 09:30 Dîner », une entrée par ligne, choix de l'utilisateur) : accueil, Calendrier et
+règles de couleur par mot fonctionnent sans changement.
+
+**Ordre des écritures** : `PlanningAutosave` numérote chaque état ; une écriture plus
+ancienne qu'une écriture déjà faite est ignorée. En quittant la page, l'état non écrit
+l'est aussitôt (`onCleared` → portée détachée) : vérifié sur émulateur, une saisie suivie
+d'un Retour immédiat est bien enregistrée.
+
+Pendant l'édition, les lignes vivent dans le ViewModel, lues une seule fois : le retour
+du disque n'écrase pas la saisie en cours.
 
 ## 5 ter. Direction artistique et design system
 
@@ -352,8 +449,13 @@ L'ambiance n'est pas un réglage d'écran : elle est **déclarée dans le catalo
 
 | Ambiance | Pages | Palette |
 |---|---|---|
-| `DARK` | Home, Calendrier, Paramètres | `AstroNightPalette` — « Nuit profonde » |
-| `LIGHT` | Astrologie, Phrases, Manifestation | `AstroDawnPalette` — « Aube céleste » |
+| `DARK` | Home, Calendrier, Paramètres, Astrologie, Phrases | `AstroNightPalette` — « Nuit profonde » |
+| `LIGHT` | Manifestation | `AstroDawnPalette` — « Aube céleste » |
+
+Astrologie et Phrases sont passées en `DARK` le 2026-10-10 (« même arrière-plan que le
+Calendrier ») : le fond étant choisi par l'ambiance, c'est la seule façon de le
+réutiliser sans copie. La demande citait une page « Phase », qui n'existe pas ; elle a
+été comprise comme **Phrases** — interprétation à confirmer.
 
 La nuit n'est pas un fond noir : c'est un bleu très désaturé qui se réchauffe vers le
 bas, comme un horizon. L'aube n'est pas un fond blanc : c'est un crème chaud qui
@@ -679,7 +781,13 @@ part de la valeur validée.
 Compilation (depuis WSL), **commande vérifiée le 2026-09-06** :
 `cmd.exe /c "cd /d C:\Users\cgill\astro && gradlew.bat assembleDebug"`
 
-Dernier résultat constaté (2026-09-06, squelette modulaire en place) : `BUILD SUCCESSFUL`,
+Dernier résultat constaté (2026-10-10, planning en lignes) : `assembleDebug` et
+`testDebugUnitTest` en `BUILD SUCCESSFUL`, **188 tests unitaires, 0 échec, 0 erreur,
+0 ignoré** (après les ajustements de l'après-midi : messages défilants, fonds) ; fichier source le plus long = 148 lignes (`SettingsScreen.kt`).
+
+Résultat du 2026-10-09 (Calendrier) : 137 tests, 0 échec.
+
+Résultat précédent (2026-09-06, squelette modulaire en place) : `BUILD SUCCESSFUL`,
 APK de 13 Mo dans `app/build/outputs/apk/debug/app-debug.apk`,
 **34 tests unitaires exécutés, 0 échec, 0 erreur, 0 ignoré**.
 Contrôle de la limite de 150 lignes : fichier le plus long = 105 lignes.
@@ -764,8 +872,8 @@ elle n'a **pas** été validée par l'utilisateur. Ne pas la traiter comme acqui
 4. **Cercle coupé par le haut : non rendu.** Deux billes seulement étaient demandées.
 5. **Choix de la temporalité sur la Home.** Rien n'indique comment l'utilisateur passe
    de Jour à Semaine depuis la Home. Le curseur y est donc figé sur `TimeScale.DAY`.
-   Le Calendrier a sa propre temporalité, qui se réinitialise en sortant de la page —
-   les deux ne sont **pas** reliées, faute de spécification.
+   Le Calendrier a sa propre temporalité, qui repart de sa vue d'ouverture en sortant
+   de la page — les deux ne sont **pas** reliées, faute de spécification.
 6. **Notes /5 de la page Astrologie.** La maquette indique « l'amour, l'argent,
    l'amitié » ; le cahier des charges dit « amitié, amour, travail ». Contradiction non
    tranchée, rien n'a été codé.
@@ -784,10 +892,18 @@ possibles, à trancher : ajouter un point d'entrée sur la Home, rendre le Calen
 atteignable depuis un autre écran, ou empêcher de masquer la barre tant que le
 Calendrier est actif.
 
+### Lint — erreurs antérieures, non corrigées
+
+`gradlew.bat lintDebug` échoue sur **2 erreurs présentes avant le travail du
+2026-10-09**, dans des fichiers que ce travail ne touche pas : `MissingPermission`
+(`core/location/DeviceLocationProvider.kt:64`) et `NonObservableLocale`
+(`core/designsystem/components/SectionLabel.kt:40`). Lint ne faisait pas partie des
+vérifications documentées jusque-là. À traiter séparément.
+
 ### Non implémenté
 
 - Contenu réel des 5 sections : Astrologie, Phrases, Manifestation restent des écrans
-  d'attente ; Calendrier n'affiche pas encore de grille.
+  d'attente.
 - **APIs horoscope, lune et soleil** : aucune n'a été testée par requête réelle. Aucune
   API gratuite fournissant les trois notes /5 n'est confirmée à ce jour.
 - **Sources de données** de la phrase du jour et de l'heure du réveil : inexistantes,

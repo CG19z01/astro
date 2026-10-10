@@ -25,6 +25,8 @@ object DayWheelConfig {
      * planète débordant de l'écran, son centre géométrique n'est pas au centre de ce
      * que l'utilisateur voit : ces deux valeurs replacent le texte dans la partie
      * visible, et à l'intérieur du disque, qui découpe son contenu.
+     *
+     * `messageLines` est la hauteur, en lignes, de la zone où défilent les messages.
      */
     data class PlanetSpec(
         val offset: Int,
@@ -33,6 +35,7 @@ object DayWheelConfig {
         val radius: Float,
         val contentX: Float,
         val contentY: Float,
+        val messageLines: Int,
     )
 
     /**
@@ -62,12 +65,19 @@ object DayWheelConfig {
      * 0,205 ; elles restent plus petites que celle du jour suivant, comme sur la
      * maquette. Ce qui est conservé : quelle journée occupe quelle place, l'ordre des
      * tailles, et le bord par lequel chaque planète est coupée.
+     *
+     * J+4, la planète du haut, a été décalée vers la gauche (`centerX` de 0,467 à
+     * 0,430) le 2026-10-10, à la demande de l'utilisateur.
+     *
+     * Le 2026-10-10 encore, le bloc jour/date a été remonté dans J+1 (`contentY` 0,36 →
+     * 0,30) et J+3 (0,34 → 0,28), abaissé dans J+4 (0,50 → 0,56), pour laisser de la
+     * place aux messages qui défilent. Les planètes elles-mêmes n'ont pas bougé.
      */
     val PLANETS = listOf(
-        PlanetSpec(offset = 0, centerX = 0.251f, centerY = 0.957f, radius = 0.505f, contentX = 0.30f, contentY = 0.06f),
-        PlanetSpec(offset = 1, centerX = 0.910f, centerY = 0.675f, radius = 0.293f, contentX = 0.10f, contentY = 0.36f),
-        PlanetSpec(offset = 3, centerX = 0.840f, centerY = 0.095f, radius = 0.205f, contentX = 0.10f, contentY = 0.34f),
-        PlanetSpec(offset = 4, centerX = 0.467f, centerY = 0.014f, radius = 0.205f, contentX = 0.10f, contentY = 0.50f),
+        PlanetSpec(0, centerX = 0.251f, centerY = 0.957f, radius = 0.505f, contentX = 0.30f, contentY = 0.06f, messageLines = 4),
+        PlanetSpec(1, centerX = 0.910f, centerY = 0.675f, radius = 0.293f, contentX = 0.10f, contentY = 0.30f, messageLines = 4),
+        PlanetSpec(3, centerX = 0.840f, centerY = 0.095f, radius = 0.205f, contentX = 0.10f, contentY = 0.28f, messageLines = 3),
+        PlanetSpec(4, centerX = 0.430f, centerY = 0.014f, radius = 0.205f, contentX = 0.10f, contentY = 0.56f, messageLines = 2),
     )
 
     /**
@@ -79,6 +89,9 @@ object DayWheelConfig {
      */
     const val MAIN_CONTENT_WIDTH = 0.62f
     const val SIDE_CONTENT_WIDTH = 0.70f
+
+    /** Hauteur, en lignes, du fondu qui signale du texte au-delà de la zone visible. */
+    const val MESSAGE_FADE_LINES: Float = 0.8f
 
     /** Nombre de journées dont le planning doit être chargé, indices compris. */
     val DAY_COUNT: Int get() = PLANETS.maxOf { it.offset } + 1

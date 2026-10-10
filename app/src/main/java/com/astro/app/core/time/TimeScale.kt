@@ -24,7 +24,10 @@ enum class TimeScale(@param:StringRes val labelRes: Int) {
     fun previous(): TimeScale = entries.getOrElse(ordinal - 1) { this }
 
     companion object {
-        /** Niveau au démarrage, et après chaque sortie de la page Calendrier. */
+        /**
+         * Niveau de la Home, figée sur la journée. Le Calendrier ne l'emploie pas : sa
+         * vue initiale est une préférence de l'utilisateur (`calendarInitialScale`).
+         */
         val INITIAL: TimeScale = DAY
     }
 }

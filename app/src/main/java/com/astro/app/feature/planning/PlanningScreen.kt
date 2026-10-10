@@ -1,97 +1,104 @@
 package com.astro.app.feature.planning
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.astro.app.R
 import com.astro.app.core.config.LocaleConfig
+import com.astro.app.core.config.PlanningConfig
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.designsystem.components.AstroScreen
 import com.astro.app.core.designsystem.components.screenReveal
 import com.astro.app.core.time.PeriodLabels
 import com.astro.app.core.time.TimeCursor
 import com.astro.app.core.time.TimeScale
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
-
-/** Délai avant enregistrement automatique, en millisecondes. */
-private const val AUTOSAVE_DELAY_MILLIS = 600L
+import com.astro.app.feature.planning.components.PlanningLineRow
+import com.astro.app.feature.planning.components.TimeWheelDialog
+import java.time.LocalTime
 
 /**
- * Planning d'une journée, ouvert en appuyant sur une bille-journée.
+ * Planning d'une journée, en lignes : un texte d'une ligne et une heure facultative.
  *
- * Le titre et la date proviennent de l'argument de navigation, donc de la bille : rien
- * n'est écrit en dur. La saisie est enregistrée automatiquement après une courte pause
- * de frappe, ce qui évite un bouton d'enregistrement et une écriture à chaque touche.
+ * Les lignes vivent dans le ViewModel ; chacune est rendue sous la clé de son
+ * identifiant, si bien qu'une ligne ajoutée ou retirée ne fait pas passer le curseur,
+ * le texte ou l'heure d'une ligne à une autre.
+ *
+ * La liste défile et laisse la place au clavier (`imePadding`) : sur un petit écran, le
+ * champ en cours de saisie reste visible. L'heure se choisit dans une fenêtre, qui ne
+ * se fait pas masquer par le clavier.
  */
-@OptIn(FlowPreview::class)
 @Composable
 fun PlanningScreen(
     modifier: Modifier = Modifier,
     viewModel: PlanningViewModel = viewModel(factory = PlanningViewModel.Factory),
 ) {
-    val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
     val locale = LocaleConfig.resolve(LocalConfiguration.current.locales[0])
     val cursor = remember(viewModel.date) { TimeCursor.of(TimeScale.DAY, viewModel.date) }
-    val stored by viewModel.text.collectAsState()
-
-    var draft by rememberSaveable { mutableStateOf<String?>(null) }
-    // Tant que l'utilisateur n'a rien saisi, l'écran suit ce qui est enregistré.
-    val value = draft ?: stored
-
-    LaunchedEffect(viewModel.date) {
-        snapshotFlow { draft }
-            .debounce(AUTOSAVE_DELAY_MILLIS)
-            .collect { pending -> if (pending != null) viewModel.save(pending) }
-    }
+    val lines by viewModel.lines.collectAsState()
+    // Ligne dont on choisit l'heure. Survit à la rotation, comme la fenêtre ouverte.
+    var pickingFor by rememberSaveable { mutableStateOf<Long?>(null) }
 
     AstroScreen(
         overline = PeriodLabels.title(cursor, locale),
         title = PeriodLabels.subtitle(cursor, locale),
         modifier = modifier,
     ) {
-        Text(
-            text = stringResource(R.string.planning_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = palette.inkFaint,
-            modifier = Modifier.screenReveal(order = 2),
-        )
-        OutlinedTextField(
-            value = value,
-            onValueChange = { draft = it },
-            placeholder = { Text(stringResource(R.string.planning_placeholder)) },
-            textStyle = MaterialTheme.typography.bodyLarge,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 220.dp)
-                .padding(top = dimens.spaceMd)
-                .screenReveal(order = 3),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = palette.accentSolar,
-                unfocusedBorderColor = palette.surfaceBorder,
-                focusedTextColor = palette.ink,
-                unfocusedTextColor = palette.ink,
-                cursorColor = palette.accentSolar,
-            ),
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = dimens.spaceXxl)
+                .screenReveal(order = 2),
+            verticalArrangement = Arrangement.spacedBy(dimens.spaceSm),
+        ) {
+            lines.orEmpty().forEach { line ->
+                key(line.id) {
+                    PlanningLineRow(
+                        line = line,
+                        onTextChange = { viewModel.onTextChange(line.id, it) },
+                        onPickTime = { pickingFor = line.id },
+                        onLeave = { viewModel.onLineLeft(line.id) },
+                    )
+                }
+            }
+        }
+    }
+
+    val picked = lines?.firstOrNull { it.id == pickingFor }
+    if (picked != null) {
+        TimeWheelDialog(
+            current = picked.time,
+            suggestion = remember { suggestedTime() },
+            onConfirm = { time ->
+                viewModel.onTimeChange(picked.id, time)
+                pickingFor = null
+            },
+            onRemove = {
+                viewModel.onTimeChange(picked.id, null)
+                pickingFor = null
+            },
+            onDismiss = { pickingFor = null },
         )
     }
+}
+
+/** Point de départ des roues pour une ligne sans heure : maintenant, au pas des minutes. */
+private fun suggestedTime(): LocalTime {
+    val now = LocalTime.now()
+    return now.withMinute(now.minute / PlanningConfig.MINUTE_STEP * PlanningConfig.MINUTE_STEP)
+        .withSecond(0).withNano(0)
 }

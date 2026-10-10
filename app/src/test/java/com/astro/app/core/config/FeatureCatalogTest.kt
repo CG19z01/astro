@@ -48,4 +48,11 @@ class FeatureCatalogTest {
         assertNull(FeatureCatalog.definitionOfRouteOrNull("route_inexistante"))
         assertNull(FeatureCatalog.definitionOfRouteOrNull(null))
     }
+
+    @Test
+    fun `l'Astrologie et les Phrases ont le fond du Calendrier`() {
+        val calendar = FeatureCatalog.definitionOf(FeatureId.CALENDAR).ambiance
+        assertEquals(calendar, FeatureCatalog.definitionOf(FeatureId.ASTROLOGY).ambiance)
+        assertEquals(calendar, FeatureCatalog.definitionOf(FeatureId.PHRASES).ambiance)
+    }
 }

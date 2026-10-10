@@ -65,7 +65,9 @@ fun AstroNavHost(
         }
         feature(FeatureId.ASTROLOGY, states, returnHome) { AstrologyScreen() }
         feature(FeatureId.PHRASES, states, returnHome) { PhrasesScreen() }
-        feature(FeatureId.CALENDAR, states, returnHome) { CalendarScreen() }
+        feature(FeatureId.CALENDAR, states, returnHome) {
+            CalendarScreen(onOpenPlanning = navController::navigateToPlanningAbove)
+        }
         feature(FeatureId.SETTINGS, states, returnHome) { SettingsScreen() }
         feature(FeatureId.MANIFESTATION, states, returnHome) { ManifestationScreen() }
 

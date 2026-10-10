@@ -13,7 +13,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.astro.app.R
 import com.astro.app.core.designsystem.AstroTheme
-import com.astro.app.core.designsystem.components.SectionLabel
 import com.astro.app.core.time.PeriodLabels
 import com.astro.app.core.time.TimeCursor
 import java.util.Locale
@@ -29,11 +28,10 @@ data class DayContentPlacement(val x: Dp, val y: Dp, val width: Dp)
 /**
  * Contenu de la planète du jour courant : le jour, sa date, et son planning.
  *
- * C'est la seule planète assez grande pour porter le planning entier ; les autres se
- * contentent d'un fragment.
+ * Les messages défilent sous le doigt ([PlanetMessages]) : aucun n'est coupé ni perdu.
  */
 @Composable
-fun MainDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Locale, planning: String) {
+fun MainDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Locale, planning: String, lines: Int) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
 
@@ -49,22 +47,19 @@ fun MainDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Local
             maxLines = 1,
         )
         Text(
-            text = PeriodLabels.subtitle(cursor, locale),
+            text = PeriodLabels.numericDate(cursor, locale),
             style = MaterialTheme.typography.bodySmall,
             color = palette.inkMuted,
             modifier = Modifier.padding(top = dimens.spaceXs),
         )
-        SectionLabel(
-            text = stringResource(R.string.home_planning_title),
-            modifier = Modifier.padding(top = dimens.spaceMd),
-        )
-        Text(
+        // Pas d'exergue « Planning du jour » : retirée le 2026-10-10 à la demande de
+        // l'utilisateur, la planète suffisant à dire de quelle journée il s'agit.
+        PlanetMessages(
             text = planning.ifBlank { stringResource(R.string.home_planning_empty) },
+            lines = lines,
             style = MaterialTheme.typography.bodyMedium,
             color = if (planning.isBlank()) palette.inkFaint else palette.inkMuted,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = dimens.spaceSm),
+            modifier = Modifier.padding(top = dimens.spaceMd),
         )
     }
 }
@@ -73,11 +68,10 @@ fun MainDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Local
  * Contenu des trois autres planètes : le jour, sa date et un extrait du planning.
  *
  * Elles portent les mêmes informations que la planète principale, en plus court : leur
- * surface visible est plus réduite, le planning y est donc coupé à deux lignes et
- * l'exergue « planning du jour » est omise, la date suffisant à situer la journée.
+ * surface visible est plus réduite, la zone de défilement y est donc plus basse.
  */
 @Composable
-fun SideDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Locale, planning: String) {
+fun SideDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Locale, planning: String, lines: Int) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
 
@@ -94,18 +88,17 @@ fun SideDayContent(place: DayContentPlacement, cursor: TimeCursor, locale: Local
             overflow = TextOverflow.Ellipsis,
         )
         Text(
-            text = PeriodLabels.subtitle(cursor, locale),
+            text = PeriodLabels.numericDate(cursor, locale),
             style = MaterialTheme.typography.bodySmall,
             color = palette.inkMuted,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Text(
+        PlanetMessages(
             text = planning.ifBlank { stringResource(R.string.home_value_unset) },
+            lines = lines,
             style = MaterialTheme.typography.bodySmall,
             color = if (planning.isBlank()) palette.inkFaint else palette.inkMuted,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = dimens.spaceXs),
         )
     }

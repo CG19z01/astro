@@ -1,6 +1,7 @@
 package com.astro.app.feature.home
 
 import com.astro.app.core.config.FeatureId
+import com.astro.app.core.planning.PlanningEntry
 import com.astro.app.core.planning.PlanningRepository
 import com.astro.app.core.settings.SettingsRepository
 import com.astro.app.core.settings.UserPreferences
@@ -15,6 +16,9 @@ import org.junit.Test
 /** Dépôts factices : ces tests portent sur le curseur, pas sur le stockage. */
 private class NoPlanning : PlanningRepository {
     override fun entryFor(date: LocalDate): Flow<String> = flowOf("")
+    override fun allEntries(): Flow<Map<LocalDate, String>> = flowOf(emptyMap())
+    override fun entriesFor(date: LocalDate): Flow<List<PlanningEntry>> = flowOf(emptyList())
+    override suspend fun saveEntries(date: LocalDate, entries: List<PlanningEntry>) = Unit
     override suspend fun save(date: LocalDate, text: String) = Unit
 }
 

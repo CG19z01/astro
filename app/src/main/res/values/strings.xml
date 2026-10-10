@@ -42,8 +42,15 @@
     <string name="settings_features_title">Fonctionnalités affichées</string>
 
     <!-- Planning d'une journée -->
-    <string name="planning_hint">Notez ce que vous prévoyez pour cette journée. L\'enregistrement est automatique.</string>
     <string name="planning_placeholder">Votre planning…</string>
+    <string name="planning_time_add">Heure</string>
+    <string name="planning_time_title">Heure</string>
+    <string name="planning_time_hours">Heures</string>
+    <string name="planning_time_minutes">Minutes</string>
+    <string name="planning_time_separator">:</string>
+    <string name="planning_time_remove">Retirer l\'heure</string>
+    <string name="action_confirm">Valider</string>
+    <string name="action_cancel">Annuler</string>
 
     <!-- Paramètres : affichage -->
     <string name="settings_display_title">Affichage</string>
@@ -108,5 +115,18 @@
     <string name="calendar_scale_week">Semaine</string>
     <string name="calendar_scale_month">Mois</string>
     <string name="calendar_scale_year">Année</string>
-    <string name="calendar_swipe_hint">3 swipes rapides pour changer de temporalité</string>
+    <string name="calendar_swipe_hint">Un swipe : période voisine · 3 swipes rapides : changer de vue. Touchez deux fois un jour pour ouvrir son planning.</string>
+    <string name="calendar_full_moon">Pleine lune</string>
+    <string name="calendar_full_moon_at">Pleine lune à %1$s</string>
+    <string name="calendar_has_planning">planning renseigné</string>
+    <string name="calendar_selected">sélectionné</string>
+
+    <!-- Paramètres du Calendrier -->
+    <string name="settings_calendar_title">Calendrier</string>
+    <string name="settings_calendar_initial_scale">Vue à l\'ouverture</string>
+    <string name="settings_calendar_initial_scale_hint">Vous pourrez toujours changer de vue une fois dans le Calendrier.</string>
+    <string name="settings_calendar_full_moons">Pleines lunes</string>
+    <string name="settings_calendar_full_moons_hint">Signale les jours de pleine lune dans toutes les vues.</string>
+    <string name="settings_calendar_markers">Jours renseignés</string>
+    <string name="settings_calendar_markers_hint">Une bulle marque chaque jour dont le planning contient du texte.</string>
 </resources>

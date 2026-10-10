@@ -33,7 +33,8 @@ object FeatureCatalog {
             defaultEnabled = true,
             canBeDisabled = true,
             inBottomBar = true,
-            ambiance = Ambiance.LIGHT,
+            // Même fond que le Calendrier, demandé le 2026-10-10.
+            ambiance = Ambiance.DARK,
         ),
         FeatureDefinition(
             id = FeatureId.PHRASES,
@@ -42,7 +43,8 @@ object FeatureCatalog {
             defaultEnabled = true,
             canBeDisabled = true,
             inBottomBar = true,
-            ambiance = Ambiance.LIGHT,
+            // Même fond que le Calendrier, demandé le 2026-10-10.
+            ambiance = Ambiance.DARK,
         ),
         FeatureDefinition(
             id = FeatureId.CALENDAR,

@@ -8,7 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.astro.app.R
 import com.astro.app.core.designsystem.AstroTheme
+import com.astro.app.feature.settings.LocationRequest
 
 /**
  * Proposition d'utiliser la position de l'appareil.
@@ -77,4 +79,12 @@ fun SessionLocationRow(
             )
         }
     }
+}
+
+/** Message accompagnant la proposition, selon l'issue de la dernière demande. */
+fun locationRequestHint(state: LocationRequest): Int = when (state) {
+    LocationRequest.IDLE -> R.string.settings_use_device_location_hint
+    LocationRequest.LOADING -> R.string.settings_location_loading
+    LocationRequest.UNAVAILABLE -> R.string.settings_location_unavailable
+    LocationRequest.DENIED -> R.string.settings_location_denied
 }

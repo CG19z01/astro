@@ -22,6 +22,7 @@ import com.astro.app.core.settings.UserPreferences
 import com.astro.app.core.designsystem.components.AstroScreen
 import com.astro.app.core.designsystem.components.screenReveal
 import com.astro.app.core.location.ObservationPoints
+import com.astro.app.feature.settings.components.CalendarSection
 import com.astro.app.feature.settings.components.DeviceLocationRow
 import com.astro.app.feature.settings.components.DisplaySection
 import com.astro.app.feature.settings.components.PlanetColorSection
@@ -29,12 +30,13 @@ import com.astro.app.feature.settings.components.SessionLocationRow
 import com.astro.app.feature.settings.components.EphemerisSection
 import com.astro.app.feature.settings.components.LocationSection
 import com.astro.app.feature.settings.components.ZonePickerDialog
+import com.astro.app.feature.settings.components.locationRequestHint
 
 /**
  * Page Paramètres, atteinte en appuyant sur le Soleil.
  *
- * Quatre sections : affichage, lieu d'observation, éphémérides du Soleil, éphémérides
- * de la Lune. Chaque nouvelle famille de réglages viendra s'ajouter sous la même forme.
+ * Sections : éphémérides du Soleil, affichage, Calendrier, couleur des planètes-jours,
+ * lieu d'observation. Chaque nouvelle famille de réglages viendra s'ajouter sous la même forme.
  */
 @Composable
 fun SettingsScreen(
@@ -77,11 +79,18 @@ fun SettingsScreen(
                 modifier = Modifier.screenReveal(order = 3),
             )
 
+            CalendarSection(
+                featureStates = states,
+                preferences = preferences,
+                onChange = viewModel::update,
+                modifier = Modifier.screenReveal(order = 4),
+            )
+
             PlanetColorSection(
                 colors = preferences.planetColors,
                 locale = locale,
                 onChange = { updated -> viewModel.update { it.copy(planetColors = updated) } },
-                modifier = Modifier.screenReveal(order = 4),
+                modifier = Modifier.screenReveal(order = 5),
             )
 
             LocationSection(
@@ -100,7 +109,7 @@ fun SettingsScreen(
                     viewModel.update { it.copy(longitude = UserPreferences.validLongitude(text.toDoubleOrNull())) }
                 },
                 onPickZone = { pickingZone = true },
-                modifier = Modifier.screenReveal(order = 5),
+                modifier = Modifier.screenReveal(order = 6),
             ) {
                 if (sessionPoint != null) {
                     SessionLocationRow(
@@ -136,12 +145,4 @@ fun SettingsScreen(
             onDismiss = { pickingZone = false },
         )
     }
-}
-
-/** Message accompagnant la proposition, selon l'issue de la dernière demande. */
-private fun locationRequestHint(state: LocationRequest): Int = when (state) {
-    LocationRequest.IDLE -> R.string.settings_use_device_location_hint
-    LocationRequest.LOADING -> R.string.settings_location_loading
-    LocationRequest.UNAVAILABLE -> R.string.settings_location_unavailable
-    LocationRequest.DENIED -> R.string.settings_location_denied
 }
