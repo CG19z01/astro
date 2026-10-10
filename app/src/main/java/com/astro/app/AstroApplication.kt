@@ -1,6 +1,7 @@
 package com.astro.app
 
 import android.app.Application
+import com.astro.app.core.alarm.SystemNextAlarmSource
 import com.astro.app.core.data.DataStorePlanningRepository
 import com.astro.app.core.data.DataStoreSettingsRepository
 import com.astro.app.core.data.settingsDataStore
@@ -21,6 +22,7 @@ class AstroApplication : Application() {
             planningRepository = DataStorePlanningRepository(settingsDataStore),
             locationProvider = DeviceLocationProvider(applicationContext),
             sessionLocation = SessionLocation(),
+            nextAlarmSource = SystemNextAlarmSource(applicationContext),
         )
     }
 }

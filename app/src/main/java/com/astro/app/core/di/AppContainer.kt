@@ -1,5 +1,6 @@
 package com.astro.app.core.di
 
+import com.astro.app.core.alarm.NextAlarmSource
 import com.astro.app.core.location.DeviceLocationProvider
 import com.astro.app.core.location.SessionLocation
 import com.astro.app.core.planning.PlanningRepository
@@ -18,4 +19,6 @@ class AppContainer(
     val locationProvider: DeviceLocationProvider,
     /** Position de session : en mémoire uniquement, jamais enregistrée. */
     val sessionLocation: SessionLocation,
+    /** Prochain réveil de l'appareil, lu auprès d'Android. */
+    val nextAlarmSource: NextAlarmSource,
 )

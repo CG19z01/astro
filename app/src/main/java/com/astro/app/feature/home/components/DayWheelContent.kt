@@ -12,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.astro.app.R
+import com.astro.app.core.alarm.WakeAlarm
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.time.PeriodLabels
 import com.astro.app.core.time.TimeCursor
@@ -79,6 +80,10 @@ fun SideDayContent(
     lines: Int,
     /** Zone propre aux messages ; nulle, ils suivent le jour et la date. */
     messages: DayContentPlacement? = null,
+    /** Réveil de la journée ; [WakeAlarm.Unknown] n'affiche rien. */
+    alarm: WakeAlarm = WakeAlarm.Unknown,
+    /** Où écrire le réveil, indépendamment du jour. */
+    alarmAt: DayContentPlacement? = null,
 ) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
@@ -103,6 +108,9 @@ fun SideDayContent(
             overflow = TextOverflow.Ellipsis,
         )
         if (messages == null) SideMessages(planning, lines, Modifier.padding(top = dimens.spaceXs))
+    }
+    if (alarmAt != null) {
+        PlanetAlarmLine(alarm, Modifier.offset(x = alarmAt.x, y = alarmAt.y).widthIn(max = alarmAt.width))
     }
     if (messages != null) {
         SideMessages(planning, lines, Modifier.offset(x = messages.x, y = messages.y).widthIn(max = messages.width))

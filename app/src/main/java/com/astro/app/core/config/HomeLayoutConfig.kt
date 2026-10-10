@@ -37,13 +37,4 @@ object HomeLayoutConfig {
 
     /** Hauteur du centre de la capsule « phrase du jour ». Elle occupe la largeur utile. */
     const val PHRASE_CENTER_Y = 0.215f
-
-    /**
-     * Ligne « heure du réveil », en bas.
-     *
-     * Descendue de 0,90 à 0,93 : la planète du jour courant, passée en bas à gauche,
-     * y amenait son planning. Les trois lignes de planning passent avant ce bloc, qui
-     * n'affiche encore aucune donnée.
-     */
-    const val WAKE_TIME_Y = 0.93f
 }

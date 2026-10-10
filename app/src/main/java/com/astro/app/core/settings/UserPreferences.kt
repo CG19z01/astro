@@ -1,5 +1,6 @@
 package com.astro.app.core.settings
 
+import com.astro.app.core.config.AlarmConfig
 import com.astro.app.core.config.CalendarConfig
 import com.astro.app.core.config.PlanningConfig
 import com.astro.app.core.time.TimeScale
@@ -35,6 +36,8 @@ data class UserPreferences(
     val showPlanningMarkers: Boolean = CalendarConfig.DEFAULT_SHOW_PLANNING_MARKERS,
     /** Sur l'accueil, les notes sans heure en haut (`true`) ou en bas des notes à heure. */
     val untimedNotesFirst: Boolean = PlanningConfig.DEFAULT_UNTIMED_FIRST,
+    /** Afficher sur la planète J+1 le premier réveil de la journée. */
+    val showNextAlarm: Boolean = AlarmConfig.DEFAULT_SHOW_NEXT_ALARM,
 ) {
     /** `true` si une position exploitable est renseignée. */
     val hasLocation: Boolean get() = latitude != null && longitude != null

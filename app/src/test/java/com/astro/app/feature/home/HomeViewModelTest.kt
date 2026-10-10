@@ -22,10 +22,10 @@ private class NoPlanning : PlanningRepository {
     override suspend fun save(date: LocalDate, text: String) = Unit
 }
 
-private class DefaultSettings : SettingsRepository {
+private class DefaultSettings(prefs: UserPreferences = UserPreferences()) : SettingsRepository {
     override val featureStates: Flow<Map<FeatureId, Boolean>> = flowOf(emptyMap())
     override suspend fun setFeatureEnabled(id: FeatureId, enabled: Boolean) = Unit
-    override val preferences: Flow<UserPreferences> = flowOf(UserPreferences())
+    override val preferences: Flow<UserPreferences> = flowOf(prefs)
     override suspend fun updatePreferences(transform: (UserPreferences) -> UserPreferences) = Unit
 }
 
@@ -33,7 +33,7 @@ class HomeViewModelTest {
 
     private val today = LocalDate.of(2026, 9, 6)
 
-    private fun viewModel() = HomeViewModel(NoPlanning(), DefaultSettings()) { today }
+    private fun viewModel() = HomeViewModel(NoPlanning(), DefaultSettings(), today = { today })
 
     @Test
     fun `le curseur demarre sur la journee en cours`() {

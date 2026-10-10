@@ -32,7 +32,8 @@ object PlanningCodec {
     const val MANUAL_HEADER = "\u001Eastro-planning-2-manuel"
     private const val NO_TIME = "--:--"
     private const val TIME_LENGTH = 5
-    private val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+    /** Format d'une heure dans l'application : « 09:30 ». */
+    val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
     /** Valeur à enregistrer. Les lignes sans texte ne sont pas des entrées : omises. */
     fun encode(entries: List<PlanningEntry>): String = encodeDay(DayPlanning(entries))

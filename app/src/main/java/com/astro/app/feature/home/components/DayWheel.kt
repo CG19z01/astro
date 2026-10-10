@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import com.astro.app.core.alarm.WakeAlarm
+import com.astro.app.core.config.AlarmConfig
 import com.astro.app.core.config.DayWheelConfig
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.planning.PlanningCodec
@@ -43,6 +45,8 @@ fun DayWheel(
     /** Notes sans heure en haut plutôt qu'en bas, hors ordre manuel. */
     untimedFirst: Boolean,
     planetColors: PlanetColors,
+    /** Réveil de la journée portée par la planète [AlarmConfig.PLANET_OFFSET]. */
+    wakeAlarm: WakeAlarm,
     onOpenPlanning: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -91,7 +95,14 @@ fun DayWheel(
                 if (main) {
                     MainDayContent(place, target, locale, planning = shown, lines = spec.messageLines)
                 } else {
-                    SideDayContent(place, target, locale, shown, spec.messageLines, messages)
+                    val alarm = if (spec.offset == AlarmConfig.PLANET_OFFSET) wakeAlarm else WakeAlarm.Unknown
+                    val alarmLeft = width * spec.centerX - diameter / 2f + diameter * AlarmConfig.LABEL_X
+                    val alarmAt = DayContentPlacement(
+                        diameter * AlarmConfig.LABEL_X,
+                        diameter * AlarmConfig.LABEL_Y,
+                        width - alarmLeft - dimens.spaceMd,
+                    )
+                    SideDayContent(place, target, locale, shown, spec.messageLines, messages, alarm, alarmAt)
                 }
             }
         }

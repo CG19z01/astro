@@ -29,7 +29,8 @@
     <string name="home_phrase_empty">Aucune phrase pour aujourd\'hui</string>
     <string name="home_planning_title">Planning du jour</string>
     <string name="home_planning_empty">Rien de prévu. Appuyez pour écrire.</string>
-    <string name="home_wake_time_label">Heure du réveil</string>
+    <string name="home_alarm_at">Réveil %1$s</string>
+    <string name="home_alarm_none">Aucun réveil</string>
     <string name="home_value_unset">—</string>
 
     <!-- Descriptions pour l'accessibilité des éléments dessinés -->
@@ -130,6 +131,8 @@
     <string name="settings_notes_title">Notes</string>
     <string name="settings_untimed_first">Notes sans heure en haut</string>
     <string name="settings_untimed_first_hint">Sur l\'accueil, les notes sans heure passent avant les notes à heure. Désactivé, elles restent en bas.</string>
+    <string name="settings_next_alarm">Réveil sur la planète J+1</string>
+    <string name="settings_next_alarm_hint">Affiche le premier réveil du lendemain, programmé dans l\'application Horloge.</string>
 
     <!-- Paramètres du Calendrier -->
     <string name="settings_calendar_title">Calendrier</string>

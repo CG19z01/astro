@@ -295,10 +295,30 @@ Aucune date n'est écrite dans l'interface : tout dérive du curseur temporel. A
 une planète ouvre le planning de SA date. Toutes suivent les règles de couleur des
 planètes.
 
-Piège rencontré : le contenu de la planète principale, descendu avec elle en bas à
-gauche, venait toucher le bloc « heure du réveil ». Son ancrage vertical a été remonté,
-et `HomeLayoutConfig.WAKE_TIME_Y` est passé de 0,90 à 0,93 — sans quoi il aurait fallu
-retirer une ligne au planning, à l'inverse de ce qui est demandé.
+### Réveil sur la planète J+1 (2026-10-10)
+
+Demandé par l'utilisateur : le premier réveil de l'application Horloge sur la planète
+J+1, et non plus un bloc « Heure du réveil » sous la planète du jour (bloc supprimé, avec
+`WAKE_TIME_Y`).
+
+**Ce qu'Android permet réellement** : aucune API publique ne donne la liste des alarmes
+de l'Horloge. Seul `AlarmManager.getNextAlarmClock()` existe — le PROCHAIN réveil de
+l'appareil, toutes applications confondues, sans permission. Il est relu à chaque
+`ACTION_NEXT_ALARM_CLOCK_CHANGED` (`core/alarm/SystemNextAlarmSource`).
+
+Règle `WakeAlarm.on` (pure, testée) pour la date de J+1 :
+- le prochain réveil tombe ce jour-là → « 07:15 », près du haut de la planète, vers son
+  centre, à une place indépendante du jour (`AlarmConfig.LABEL_X/LABEL_Y`), en `titleMedium`
+  et sans le mot « Réveil » (choix de l'utilisateur ; le lecteur d'écran dit « Réveil 07:15 ») ;
+- il tombe plus tard, ou aucun réveil → « Aucun réveil » ;
+- date passée, aujourd'hui, ou après le prochain réveil → **rien affiché** : Android ne
+  connaît pas les réveils suivants, on n'invente pas.
+Le jour d'un réveil est pris dans le fuseau de l'appareil, celui où il sonne.
+
+Le jour, la date et les messages de J+1 ne bougent pas, que le réveil soit affiché ou non. Réglage « Réveil sur la planète J+1 »
+(section Notes des Paramètres, activé par défaut, clé `home_show_next_alarm`).
+Vérifié sur émulateur : réveil créé dans l'Horloge → affiché ; réveil plus tôt ajouté
+→ mis à jour sans relancer l'application ; réglage coupé puis rallumé, persisté.
 
 ### Le dodécaèdre
 
@@ -800,8 +820,8 @@ Compilation (depuis WSL), **commande vérifiée le 2026-09-06** :
 `cmd.exe /c "cd /d C:\Users\cgill\astro && gradlew.bat assembleDebug"`
 
 Dernier résultat constaté (2026-10-10, planning en lignes) : `assembleDebug` et
-`testDebugUnitTest` en `BUILD SUCCESSFUL`, **201 tests unitaires, 0 échec, 0 erreur,
-0 ignoré** (après l'ordre manuel et le réglage des notes sans heure) ; fichier source le plus long = 148 lignes (`SettingsScreen.kt`).
+`testDebugUnitTest` en `BUILD SUCCESSFUL`, **211 tests unitaires, 0 échec, 0 erreur,
+0 ignoré** (après le réveil sur J+1) ; fichier source le plus long = 143 lignes (`SettingsScreen.kt`).
 
 Résultat du 2026-10-09 (Calendrier) : 137 tests, 0 échec.
 
@@ -924,8 +944,7 @@ vérifications documentées jusque-là. À traiter séparément.
   d'attente.
 - **APIs horoscope, lune et soleil** : aucune n'a été testée par requête réelle. Aucune
   API gratuite fournissant les trois notes /5 n'est confirmée à ce jour.
-- **Sources de données** de la phrase du jour et de l'heure du réveil : inexistantes,
-  les deux affichent un état vide.
+- **Source de données** de la phrase du jour : inexistante, elle affiche un état vide.
 - **Compte utilisateur** : ni authentification, ni e-mail, ni mot de passe.
 - **Signe astrologique par défaut** et ses deux modes de sélection.
 - **Voix** : ni import, ni dictée, ni lecture. La limitation technique sur l'import
