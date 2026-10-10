@@ -22,19 +22,25 @@ object HomeLayoutConfig {
 
     /**
      * La Lune, en haut à gauche : accès à l'Astrologie.
-     * Descendue de 0,115 à 0,13 le 2026-10-10, à la demande de l'utilisateur.
+     * Descendue de 0,115 à 0,13, puis à 0,1421 (+25 px) le 2026-10-10, à la demande de
+     * l'utilisateur. Les décalages demandés en pixels sont convertis sur la hauteur
+     * mesurée de la zone (2070 px sur l'émulateur Pixel 8).
      */
-    val moon = CircleSpec(centerX = 0.17f, centerY = 0.13f, radius = 0.115f)
+    val moon = CircleSpec(centerX = 0.17f, centerY = 0.1421f, radius = 0.115f)
 
-    /** Le Soleil, à droite : accès aux Paramètres. */
-    val sun = CircleSpec(centerX = 0.80f, centerY = 0.395f, radius = 0.125f)
+    /** Le Soleil, à droite : accès aux Paramètres. Descendu de 30 px le 2026-10-10. */
+    val sun = CircleSpec(centerX = 0.80f, centerY = 0.4095f, radius = 0.125f)
 
     /**
      * Le dodécaèdre, à gauche : accès à la Manifestation.
-     * Descendu de 0,405 à 0,425 le 2026-10-10, à la demande de l'utilisateur.
+     * Descendu de 0,405 à 0,425, puis à 0,4443 (+40 px) le 2026-10-10, à la demande de
+     * l'utilisateur.
      */
-    val dodecahedron = CircleSpec(centerX = 0.25f, centerY = 0.425f, radius = 0.155f)
+    val dodecahedron = CircleSpec(centerX = 0.25f, centerY = 0.4443f, radius = 0.155f)
 
-    /** Hauteur du centre de la capsule « phrase du jour ». Elle occupe la largeur utile. */
-    const val PHRASE_CENTER_Y = 0.215f
+    /**
+     * Hauteur du centre de la capsule « phrase du jour ». Elle occupe la largeur utile.
+     * Descendue de 20 px le 2026-10-10.
+     */
+    const val PHRASE_CENTER_Y = 0.2247f
 }

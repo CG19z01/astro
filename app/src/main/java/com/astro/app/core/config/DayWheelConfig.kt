@@ -87,7 +87,8 @@ object DayWheelConfig {
      * et remonté, ses messages ont leur propre zone, plus à gauche, là où la partie
      * visible du disque est la plus large — cinq lignes au lieu de quatre. J+4 remonte
      * encore (0,34) pour montrer trois lignes. Positions vérifiées ligne par ligne contre
-     * le bord du disque, sur capture.
+     * le bord du disque, sur capture. Enfin, J+3 et J+4 descendent de 20 px (`centerY`
+     * +0,0097, sur une hauteur mesurée de 2070 px).
      */
     val PLANETS = listOf(
         PlanetSpec(0, centerX = 0.251f, centerY = 0.957f, radius = 0.505f, contentX = 0.30f, contentY = 0.06f, messageLines = 4),
@@ -95,8 +96,8 @@ object DayWheelConfig {
             1, centerX = 0.910f, centerY = 0.675f, radius = 0.293f, contentX = 0.19f, contentY = 0.21f,
             messageLines = 5, messagesX = 0.07f, messagesY = 0.37f,
         ),
-        PlanetSpec(3, centerX = 0.840f, centerY = 0.095f, radius = 0.205f, contentX = 0.13f, contentY = 0.28f, messageLines = 3),
-        PlanetSpec(4, centerX = 0.430f, centerY = 0.014f, radius = 0.205f, contentX = 0.15f, contentY = 0.34f, messageLines = 3),
+        PlanetSpec(3, centerX = 0.840f, centerY = 0.1047f, radius = 0.205f, contentX = 0.13f, contentY = 0.28f, messageLines = 3),
+        PlanetSpec(4, centerX = 0.430f, centerY = 0.0237f, radius = 0.205f, contentX = 0.15f, contentY = 0.34f, messageLines = 3),
     )
 
     /**
