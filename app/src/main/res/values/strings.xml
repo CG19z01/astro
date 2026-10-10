@@ -30,7 +30,6 @@
     <string name="home_planning_title">Planning du jour</string>
     <string name="home_planning_empty">Rien de prévu. Appuyez pour écrire.</string>
     <string name="home_alarm_at">Réveil %1$s</string>
-    <string name="home_alarm_none">Aucun réveil</string>
     <string name="home_value_unset">—</string>
 
     <!-- Descriptions pour l'accessibilité des éléments dessinés -->

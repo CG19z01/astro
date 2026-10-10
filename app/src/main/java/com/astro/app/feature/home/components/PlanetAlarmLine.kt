@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import com.astro.app.R
 import com.astro.app.core.alarm.WakeAlarm
@@ -22,28 +21,17 @@ import com.astro.app.core.planning.PlanningCodec
  */
 @Composable
 fun PlanetAlarmLine(alarm: WakeAlarm, modifier: Modifier = Modifier) {
-    val style = alarmStyle(alarm) ?: return
-    val description: String
-    val text = when (alarm) {
-        is WakeAlarm.At -> alarm.time.format(PlanningCodec.TIME_FORMAT).also {
-            description = stringResource(R.string.home_alarm_at, it)
-        }
-        else -> stringResource(R.string.home_alarm_none).also { description = it }
-    }
+    // Sans réveil ce jour-là, rien n'est écrit (« Aucun réveil » retiré le 2026-10-10,
+    // à la demande de l'utilisateur).
+    if (alarm !is WakeAlarm.At) return
+    val time = alarm.time.format(PlanningCodec.TIME_FORMAT)
+    val description = stringResource(R.string.home_alarm_at, time)
     Text(
-        text = text,
-        style = style,
-        color = if (alarm is WakeAlarm.At) AstroTheme.palette.accentLunar else AstroTheme.palette.inkFaint,
+        text = time,
+        style = MaterialTheme.typography.titleMedium,
+        color = AstroTheme.palette.accentLunar,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier.semantics { contentDescription = description },
     )
-}
-
-/** Style de la ligne du réveil ; `null` quand rien n'est affiché. */
-@Composable
-fun alarmStyle(alarm: WakeAlarm): TextStyle? = when (alarm) {
-    is WakeAlarm.At -> MaterialTheme.typography.titleMedium
-    WakeAlarm.None -> MaterialTheme.typography.bodySmall
-    WakeAlarm.Unknown -> null
 }

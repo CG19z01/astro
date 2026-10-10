@@ -310,7 +310,8 @@ Règle `WakeAlarm.on` (pure, testée) pour la date de J+1 :
 - le prochain réveil tombe ce jour-là → « 07:15 », près du haut de la planète, vers son
   centre, à une place indépendante du jour (`AlarmConfig.LABEL_X/LABEL_Y`), en `titleMedium`
   et sans le mot « Réveil » (choix de l'utilisateur ; le lecteur d'écran dit « Réveil 07:15 ») ;
-- il tombe plus tard, ou aucun réveil → « Aucun réveil » ;
+- il tombe plus tard, ou aucun réveil → rien d'écrit (« Aucun réveil » retiré à la
+  demande de l'utilisateur) ;
 - date passée, aujourd'hui, ou après le prochain réveil → **rien affiché** : Android ne
   connaît pas les réveils suivants, on n'invente pas.
 Le jour d'un réveil est pris dans le fuseau de l'appareil, celui où il sonne.
