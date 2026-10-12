@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.Dp
 import com.astro.app.R
 import com.astro.app.core.config.FeatureCatalog
 import com.astro.app.core.config.FeatureId
+import com.astro.app.core.phrases.Phrase
 import com.astro.app.core.config.HomeLayoutConfig
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.designsystem.components.screenReveal
@@ -28,6 +29,8 @@ fun HomeShortcuts(
     states: Map<FeatureId, Boolean>,
     onOpenFeature: (String) -> Unit,
     onResetToToday: () -> Unit,
+    /** Phrase du jour ; nulle tant qu'aucune liste n'est importée. */
+    phrase: Phrase?,
     modifier: Modifier = Modifier,
 ) {
     val dimens = AstroTheme.dimens
@@ -68,7 +71,9 @@ fun HomeShortcuts(
         Shortcut(FeatureId.PHRASES, states) {
             PhraseCapsule(
                 overline = stringResource(R.string.home_phrase_overline),
-                text = stringResource(R.string.home_phrase_empty),
+                text = phrase?.text ?: stringResource(R.string.home_phrase_empty),
+                author = phrase?.author.orEmpty(),
+                textMaxHeight = height * HomeLayoutConfig.PHRASE_TEXT_MAX_HEIGHT,
                 onClick = { onOpenFeature(routeOf(FeatureId.PHRASES)) },
                 modifier = Modifier
                     .padding(horizontal = dimens.screenPadding)

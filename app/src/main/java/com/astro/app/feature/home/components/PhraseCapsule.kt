@@ -6,8 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +20,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
+import com.astro.app.core.config.PhrasesConfig
 import com.astro.app.core.designsystem.AstroTheme
 import com.astro.app.core.designsystem.components.SectionLabel
 
@@ -31,6 +38,10 @@ import com.astro.app.core.designsystem.components.SectionLabel
 fun PhraseCapsule(
     overline: String,
     text: String,
+    /** Auteur de la phrase ; vide, la ligne n'apparaît pas. */
+    author: String,
+    /** Hauteur maximale du texte de la phrase. */
+    textMaxHeight: Dp,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -57,13 +68,31 @@ fun PhraseCapsule(
         verticalArrangement = Arrangement.spacedBy(dimens.spaceSm),
     ) {
         SectionLabel(text = overline)
-        Text(
+        // Une phrase longue rétrécit au lieu de pousser la capsule sur le dodécaèdre et
+        // le Soleil : la hauteur du texte est bornée, la taille s'y ajuste.
+        val headline = MaterialTheme.typography.headlineMedium
+        BasicText(
             text = text,
-            style = MaterialTheme.typography.headlineMedium,
-            color = palette.ink,
-            textAlign = TextAlign.Center,
-            maxLines = 3,
+            style = headline.copy(
+                color = palette.ink,
+                textAlign = TextAlign.Center,
+                lineHeight = PhrasesConfig.CAPSULE_LINE_HEIGHT_EM.em,
+            ),
             overflow = TextOverflow.Ellipsis,
+            autoSize = TextAutoSize.StepBased(
+                minFontSize = PhrasesConfig.MIN_CAPSULE_FONT_SP.sp,
+                maxFontSize = headline.fontSize,
+            ),
+            modifier = Modifier.heightIn(max = textMaxHeight),
         )
+        if (author.isNotBlank()) {
+            Text(
+                text = author,
+                style = MaterialTheme.typography.bodySmall,
+                color = palette.inkMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }

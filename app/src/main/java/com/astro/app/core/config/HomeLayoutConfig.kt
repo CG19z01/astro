@@ -43,4 +43,11 @@ object HomeLayoutConfig {
      * Descendue de 20 px le 2026-10-10.
      */
     const val PHRASE_CENTER_Y = 0.2247f
+
+    /**
+     * Hauteur maximale du texte de la phrase, en fraction de la hauteur. Au-delà, la
+     * capsule recouvrait le dodécaèdre et le Soleil (constaté le 2026-10-11 avec une
+     * phrase de 140 caractères) : la phrase rétrécit pour tenir dans cette hauteur.
+     */
+    const val PHRASE_TEXT_MAX_HEIGHT = 0.058f
 }

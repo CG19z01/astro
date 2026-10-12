@@ -141,4 +141,47 @@
     <string name="settings_calendar_full_moons_hint">Signale les jours de pleine lune dans toutes les vues.</string>
     <string name="settings_calendar_markers">Jours renseignés</string>
     <string name="settings_calendar_markers_hint">Une bulle marque chaque jour dont le planning contient du texte.</string>
+    <!-- Phrases (2026-10-11) : fichier écrit et importé par l'utilisateur. -->
+    <string name="phrases_list_title">Ma liste</string>
+    <string name="phrases_list_empty">Aucune liste importée</string>
+    <plurals name="phrases_count">
+        <item quantity="one">%d phrase</item>
+        <item quantity="other">%d phrases</item>
+    </plurals>
+    <string name="phrases_format_hint">Fichier JSON : une liste de { \"texte\": \"…\", \"auteur\": \"…\" } — l\'auteur est facultatif. Importer remplace la liste ; l\'historique est conservé.</string>
+    <string name="phrases_import">Importer un fichier</string>
+    <plurals name="phrases_imported">
+        <item quantity="one">%d phrase importée.</item>
+        <item quantity="other">%d phrases importées.</item>
+    </plurals>
+    <string name="phrases_error_too_large">Fichier trop volumineux pour une liste de phrases.</string>
+    <string name="phrases_error_unreadable">Impossible de lire ce fichier.</string>
+    <string name="phrases_error_not_json">Ce fichier n\'est pas du JSON valide.</string>
+    <string name="phrases_error_not_list">Le fichier doit contenir une liste, entre [ et ].</string>
+    <string name="phrases_error_empty">La liste est vide.</string>
+    <string name="phrases_error_missing_text">La phrase n° %1$d n\'a pas de texte. Rien n\'a été importé.</string>
+    <!-- Manifestations (2026-10-11). -->
+    <string name="manifestation_add">Nouvelle manifestation</string>
+    <string name="manifestation_empty">Aucune manifestation. Appuyez sur « + » pour écrire la première.</string>
+    <string name="manifestation_filter_all">Tous</string>
+    <string name="manifestation_untitled">Sans titre</string>
+    <string name="manifestation_field_title">Titre</string>
+    <string name="manifestation_field_subject">Sujet</string>
+    <string name="manifestation_field_text">Texte</string>
+    <string name="manifestation_save">Enregistrer</string>
+    <string name="manifestation_edit">Modifier</string>
+    <string name="manifestation_delete">Supprimer</string>
+    <string name="manifestation_delete_title">Supprimer cette manifestation ?</string>
+    <string name="manifestation_delete_message">Elle sera effacée définitivement.</string>
+    <string name="manifestation_read">Lecture</string>
+    <string name="manifestation_stop">Arrêter</string>
+    <string name="manifestation_speech_starting">Préparation de la voix…</string>
+    <string name="manifestation_speech_unavailable">Lecture impossible : aucune voix française sur ce téléphone</string>
+    <string name="manifestation_voice">Voix de lecture</string>
+    <string name="manifestation_voice_title">Voix de lecture</string>
+    <string name="manifestation_voice_default">Voix par défaut</string>
+    <string name="manifestation_voice_online">en ligne</string>
+    <string name="manifestation_voice_offline">hors ligne</string>
+    <string name="manifestation_voice_preview">Écouter</string>
+    <string name="manifestation_voice_sample">Bonjour. Je suis la voix qui lira vos manifestations.</string>
 </resources>

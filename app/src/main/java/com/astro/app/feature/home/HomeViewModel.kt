@@ -10,6 +10,8 @@ import com.astro.app.core.alarm.NextAlarmSource
 import com.astro.app.core.alarm.WakeAlarm
 import com.astro.app.core.config.AlarmConfig
 import com.astro.app.core.config.DayWheelConfig
+import com.astro.app.core.phrases.DailyPhrase
+import com.astro.app.core.phrases.Phrase
 import com.astro.app.core.planning.DayPlanning
 import com.astro.app.core.planning.PlanningRepository
 import com.astro.app.core.settings.PlanetColors
@@ -51,7 +53,13 @@ class HomeViewModel(
     nextAlarm: NextAlarmSource = NextAlarmSource { flowOf(null) },
     /** Fuseau de l'appareil : celui dans lequel sonne le réveil. */
     private val zone: () -> ZoneId = ZoneId::systemDefault,
+    /** Phrase du jour ; par défaut, aucune. */
+    dailyPhrase: DailyPhrase? = null,
 ) : ViewModel() {
+
+    /** Phrase du jour, tirée de la liste importée par l'utilisateur ; nulle sans liste. */
+    val phraseOfDay: StateFlow<Phrase?> = (dailyPhrase?.ofToday() ?: flowOf(null))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
 
     private val _cursor = MutableStateFlow(TimeCursor.of(TimeScale.INITIAL, today()))
     val cursor: StateFlow<TimeCursor> = _cursor.asStateFlow()
@@ -132,6 +140,7 @@ class HomeViewModel(
                     planning = application.container.planningRepository,
                     settings = application.container.settingsRepository,
                     nextAlarm = application.container.nextAlarmSource,
+                    dailyPhrase = DailyPhrase(application.container.phraseRepository),
                 )
             }
         }

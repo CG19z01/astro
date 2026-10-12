@@ -92,12 +92,12 @@ Sous Windows, remplacer `./gradlew` par `gradlew.bat`.
 
 ## État du projet
 
-Projet personnel en cours. 211 tests unitaires, tous au vert.
+Projet personnel en cours. 243 tests unitaires, tous au vert.
 
 Pas encore fait :
 
-- les pages **Phrases** et **Manifestation** sont des écrans d'attente ;
-- aucune source pour la phrase du jour ;
+- la page **Astrologie** est un écran d'attente ;
+- pas de dictée vocale des manifestations ;
 - aucun test instrumenté. L'interface n'a été vérifiée que sur émulateur (Pixel 8,
   API 36), jamais sur un appareil réel.
 

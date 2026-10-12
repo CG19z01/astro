@@ -38,6 +38,7 @@ fun HomeScreen(
     val dayPlannings by viewModel.dayPlannings.collectAsState()
     val untimedFirst by viewModel.untimedNotesFirst.collectAsState()
     val wakeAlarm by viewModel.wakeAlarm.collectAsState()
+    val phrase by viewModel.phraseOfDay.collectAsState()
 
     BoxWithConstraints(
         modifier = modifier
@@ -63,6 +64,7 @@ fun HomeScreen(
             states = states,
             onOpenFeature = onOpenFeature,
             onResetToToday = viewModel::resetToToday,
+            phrase = phrase,
             modifier = Modifier.statusBarsPadding(),
         )
     }

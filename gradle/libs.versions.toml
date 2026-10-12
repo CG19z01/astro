@@ -15,6 +15,8 @@ lifecycle = "2.11.0"
 activityCompose = "1.13.0"
 navigationCompose = "2.10.0"
 datastorePreferences = "1.2.1"
+# 1.9.0 : dernière version compilée pour Kotlin 2.2 (1.10 exige Kotlin 2.3). Relevé le 2026-10-11.
+kotlinxSerialization = "1.9.0"
 
 # Tests
 junit = "4.13.2"
@@ -42,8 +44,10 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestJunit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

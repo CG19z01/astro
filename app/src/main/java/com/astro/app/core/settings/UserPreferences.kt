@@ -38,6 +38,8 @@ data class UserPreferences(
     val untimedNotesFirst: Boolean = PlanningConfig.DEFAULT_UNTIMED_FIRST,
     /** Afficher sur la planète J+1 le premier réveil de la journée. */
     val showNextAlarm: Boolean = AlarmConfig.DEFAULT_SHOW_NEXT_ALARM,
+    /** Voix de lecture des manifestations ; nulle, la voix française par défaut. */
+    val speechVoiceName: String? = null,
 ) {
     /** `true` si une position exploitable est renseignée. */
     val hasLocation: Boolean get() = latitude != null && longitude != null

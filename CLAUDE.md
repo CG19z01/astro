@@ -92,7 +92,7 @@ Extraction en modules Gradle possible plus tard sans réécriture.
 app/src/main/java/<pkg>/
   core/
     config/        constantes centralisées, registre des fonctionnalités
-    data/          DataStore (préférences), Room (phrases, manifestations), repositories
+    data/          DataStore (préférences, plannings), fichiers JSON (phrases, manifestations)
     domain/        interfaces : AuthService, SpeechService, TtsService, AstroDataSource
     ui/            thème, composants partagés
   feature/
@@ -800,6 +800,58 @@ directement à la valeur analysée. Dès « 48. » tapé, la valeur est reparsé
 réaffichée « 48.0 » et le point disparaît sous les doigts. Le texte saisi se mémorise à
 part de la valeur validée.
 
+## 5 nonies. Phrases du jour (2026-10-11)
+
+Choix de l'utilisateur : **il écrit lui-même ses phrases** (motivation, pensée positive)
+dans un fichier JSON, déposé sur le téléphone puis importé depuis la page Phrases
+(« Importer un fichier », sélecteur d'Android, aucune permission de stockage). Aucune
+phrase n'est fournie par l'application, rien n'est sur GitHub. Recherche faite avant :
+aucune API gratuite ne donne une citation du jour en français (ZenQuotes, FavQs :
+anglais ; Echoes, Kaamelott : tirage au hasard ; Quotable : hors service — testés le
+2026-10-11).
+
+- Format : une liste ; chaque élément est `{ "texte": "…", "auteur": "…" }` (auteur
+  facultatif) ou une simple chaîne. **Tout ou rien** : une phrase sans texte fait refuser
+  le fichier en disant laquelle (`PhraseFileParser`). Importer **remplace** la liste.
+- Phrase du jour (`DailyPhrasePicker`, pur) : parmi les phrases les moins montrées, rang
+  dépendant de la date ; toutes passent avant qu'une revienne. Inscrite au **journal**
+  la première fois qu'elle est demandée, pour la journée en cours seulement ; une journée
+  inscrite ne change plus, même après un nouvel import. L'historique = le journal.
+- Stockage : `files/phrases/phrases.json` et `journal.json` (`JsonFileStore` : écriture
+  atomique, fichier illisible mis de côté en `.illisible` au lieu d'être écrasé).
+- Capsule de l'accueil : la phrase **rétrécit** (14 sp minimum) dans une hauteur bornée
+  (`HomeLayoutConfig.PHRASE_TEXT_MAX_HEIGHT`) — sans quoi une phrase longue recouvrait le
+  dodécaèdre et le Soleil (constaté). Au-delà d'environ 110 caractères, « … » sur
+  l'accueil ; la phrase reste entière dans l'historique.
+
+## 5 decies. Manifestations (2026-10-11)
+
+Chaque manifestation : un **titre**, un **sujet** (texte libre, choix de l'utilisateur)
+et un **texte**. Liste (la plus récente en premier), filtre par sujet (« Tous » + un
+sujet par pastille, casse et espaces ignorés), bouton **« + » en bas à droite**, lecture,
+modification, suppression avec confirmation. Les trois vues vivent dans la même
+destination : Retour remonte édition → lecture → liste, puis accueil.
+
+**Stockage : fichier JSON (`files/manifestations/manifestations.json`), pas Room.**
+Écart assumé avec l'architecture initiale : quelques dizaines d'entrées ne justifient
+pas Room et son processeur d'annotations (KSP), à aligner sur AGP 9 et Kotlin 2.2.10.
+`kotlinx-serialization-json` **1.9.0** ajouté (dernière version compilée pour Kotlin 2.2 ;
+1.10 exige Kotlin 2.3 — vérifié sur Maven Central). Passer à Room plus tard ne touche
+que `FileManifestationRepository`.
+
+**Lecture à voix haute** : `TextToSpeech` d'Android (`AndroidSpeechService`), aucune
+dépendance, aucun service payant. Titre puis texte ; un texte long est découpé sous la
+limite du moteur (`SpeechChunks`, pur). Le bouton devient « Arrêter » pendant la lecture.
+**Voix « française, féminine, naturelle »** : Android n'expose pas le genre (limitation 2
+ci-dessous). Le bouton « Voix de lecture » liste les voix **fr-FR** installées, chacune
+avec « Écouter » ; le choix est persisté (`speech_voice_name`), « Voix par défaut »
+sinon. Placé sur la page Manifestation et non dans les Paramètres (fichier à 143 lignes).
+Constaté sur l'émulateur : moteur Google, voix fr-fr-x-fra/frb/frc (hors ligne et en
+ligne) et la voix par défaut fr-fr-x-vlf ; synthèse effectivement jouée. Le drapeau
+« non installée » du moteur est faux pour ces voix : il n'est pas affiché.
+**Lequel de ces noms est une voix féminine n'est pas vérifié** — à l'oreille de
+l'utilisateur, sur son téléphone.
+
 ## 6. Limitations connues — à ne jamais présenter comme résolues
 
 1. **Import d'une voix** : le moteur de synthèse vocale Android n'accepte pas un fichier audio
@@ -820,7 +872,7 @@ part de la valeur validée.
 Compilation (depuis WSL), **commande vérifiée le 2026-09-06** :
 `cmd.exe /c "cd /d C:\Users\cgill\astro && gradlew.bat assembleDebug"`
 
-Dernier résultat constaté (2026-10-10, planning en lignes) : `assembleDebug` et
+Dernier résultat constaté (2026-10-11, phrases et manifestations : **243 tests**, 0 échec). Résultat du 2026-10-10 (planning en lignes) : `assembleDebug` et
 `testDebugUnitTest` en `BUILD SUCCESSFUL`, **211 tests unitaires, 0 échec, 0 erreur,
 0 ignoré** (après le réveil sur J+1) ; fichier source le plus long = 143 lignes (`SettingsScreen.kt`).
 
@@ -941,14 +993,14 @@ vérifications documentées jusque-là. À traiter séparément.
 
 ### Non implémenté
 
-- Contenu réel des 5 sections : Astrologie, Phrases, Manifestation restent des écrans
-  d'attente.
+- Contenu réel de l'Astrologie : écran d'attente. Phrases et Manifestation sont
+  faites (2026-10-11) ; la dictée vocale des manifestations ne l'est pas.
 - **APIs horoscope, lune et soleil** : aucune n'a été testée par requête réelle. Aucune
   API gratuite fournissant les trois notes /5 n'est confirmée à ce jour.
 - **Source de données** de la phrase du jour : inexistante, elle affiche un état vide.
 - **Compte utilisateur** : ni authentification, ni e-mail, ni mot de passe.
 - **Signe astrologique par défaut** et ses deux modes de sélection.
-- **Voix** : ni import, ni dictée, ni lecture. La limitation technique sur l'import
+- **Voix** : lecture faite (manifestations) ; ni import, ni dictée. La limitation technique sur l'import
   d'une voix (section 6) reste entière et non tranchée.
 - **Ambiances claires non retouchées** : Astrologie, Phrases et Manifestation gardent
   le rendu précédent. La refonte en matière s'est arrêtée à la Home, comme demandé,
