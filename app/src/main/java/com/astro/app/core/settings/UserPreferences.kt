@@ -3,6 +3,8 @@ package com.astro.app.core.settings
 import com.astro.app.core.config.AlarmConfig
 import com.astro.app.core.config.CalendarConfig
 import com.astro.app.core.config.PlanningConfig
+import com.astro.app.core.phrases.PhraseWishes
+import com.astro.app.core.phrases.ReaderGender
 import com.astro.app.core.time.TimeScale
 import java.time.ZoneId
 
@@ -40,7 +42,14 @@ data class UserPreferences(
     val showNextAlarm: Boolean = AlarmConfig.DEFAULT_SHOW_NEXT_ALARM,
     /** Voix de lecture des manifestations ; nulle, la voix française par défaut. */
     val speechVoiceName: String? = null,
+    /** Genre déclaré pour les phrases du jour ; nul tant qu'il n'est pas renseigné. */
+    val readerGender: ReaderGender? = null,
+    /** Thèmes de phrases voulus ; vide, tous les thèmes. */
+    val phraseThemes: Set<String> = emptySet(),
 ) {
+    /** Genre et thèmes pour le choix de la phrase du jour. */
+    val phraseWishes: PhraseWishes get() = PhraseWishes(readerGender, phraseThemes)
+
     /** `true` si une position exploitable est renseignée. */
     val hasLocation: Boolean get() = latitude != null && longitude != null
 

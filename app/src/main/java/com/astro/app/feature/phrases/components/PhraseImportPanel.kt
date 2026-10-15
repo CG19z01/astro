@@ -1,5 +1,6 @@
 package com.astro.app.feature.phrases.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -10,29 +11,23 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.astro.app.R
 import com.astro.app.core.designsystem.AstroTheme
-import com.astro.app.core.designsystem.components.AstroCard
-import com.astro.app.core.designsystem.components.SectionLabel
 import com.astro.app.core.phrases.PhraseImport
 import com.astro.app.feature.phrases.ImportStatus
 
 /**
- * « Ma liste » : combien de phrases sont importées, et le bouton pour (ré)importer.
- *
- * Le format attendu est rappelé sur la carte : c'est l'utilisateur qui écrit le
- * fichier, il doit pouvoir le faire sans documentation extérieure.
+ * Onglet « Ma liste » du menu : combien de phrases sont importées, et le bouton pour
+ * (ré)importer. Retiré de la page le 2026-10-15, à la demande de l'utilisateur.
  */
 @Composable
-fun PhraseImportCard(count: Int, status: ImportStatus?, onImport: () -> Unit, modifier: Modifier = Modifier) {
+fun PhraseImportPanel(count: Int, status: ImportStatus?, onImport: () -> Unit, modifier: Modifier = Modifier) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
-    AstroCard(modifier = modifier) {
-        SectionLabel(text = stringResource(R.string.phrases_list_title))
+    Column(modifier = modifier) {
         Text(
             text = if (count == 0) stringResource(R.string.phrases_list_empty)
             else pluralStringResource(R.plurals.phrases_count, count, count),
             style = MaterialTheme.typography.titleMedium,
             color = palette.ink,
-            modifier = Modifier.padding(top = dimens.spaceMd),
         )
         Text(
             text = stringResource(R.string.phrases_format_hint),
@@ -69,5 +64,7 @@ private fun statusText(status: ImportStatus): String = when (status) {
         PhraseImport.Reason.EMPTY -> stringResource(R.string.phrases_error_empty)
         PhraseImport.Reason.MISSING_TEXT ->
             stringResource(R.string.phrases_error_missing_text, status.failure.position ?: 0)
+        PhraseImport.Reason.UNKNOWN_GENDER ->
+            stringResource(R.string.phrases_error_unknown_gender, status.failure.position ?: 0)
     }
 }

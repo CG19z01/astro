@@ -140,7 +140,7 @@ class HomeViewModel(
                     planning = application.container.planningRepository,
                     settings = application.container.settingsRepository,
                     nextAlarm = application.container.nextAlarmSource,
-                    dailyPhrase = DailyPhrase(application.container.phraseRepository),
+                    dailyPhrase = application.container.dailyPhrase(),
                 )
             }
         }

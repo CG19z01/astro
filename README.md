@@ -92,7 +92,7 @@ Sous Windows, remplacer `./gradlew` par `gradlew.bat`.
 
 ## État du projet
 
-Projet personnel en cours. 243 tests unitaires, tous au vert.
+Projet personnel en cours. 256 tests unitaires, tous au vert.
 
 Pas encore fait :
 

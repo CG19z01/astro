@@ -13,14 +13,16 @@ sealed interface PhraseImport {
     /** [position] : rang de la phrase fautive, à partir de 1 ; nul si le défaut est global. */
     data class Failure(val reason: Reason, val position: Int? = null) : PhraseImport
 
-    enum class Reason { NOT_JSON, NOT_A_LIST, EMPTY, MISSING_TEXT }
+    enum class Reason { NOT_JSON, NOT_A_LIST, EMPTY, MISSING_TEXT, UNKNOWN_GENDER }
 }
 
 /**
  * Lit le fichier JSON de phrases écrit par l'utilisateur.
  *
  * Format attendu : une liste. Chaque élément est soit un objet
- * `{ "texte": "…", "auteur": "…" }` (auteur facultatif), soit directement une chaîne.
+ * `{ "texte": "…", "auteur": "…", "theme": "…", "genre": "…" }` — seul le texte est
+ * obligatoire ; genre : « neutre » (par défaut), « masculin » ou « féminin » —, soit
+ * directement une chaîne.
  * Les espaces en bord sont retirés, les doublons exacts ignorés.
  *
  * Tout ou rien : une seule phrase sans texte fait refuser le fichier, en indiquant
@@ -35,7 +37,10 @@ object PhraseFileParser {
         if (items.isEmpty()) return PhraseImport.Failure(PhraseImport.Reason.EMPTY)
 
         val phrases = items.mapIndexed { index, item ->
-            phraseOf(item) ?: return PhraseImport.Failure(PhraseImport.Reason.MISSING_TEXT, index + 1)
+            val gender = genderOf(item)
+                ?: return PhraseImport.Failure(PhraseImport.Reason.UNKNOWN_GENDER, index + 1)
+            phraseOf(item)?.copy(gender = gender)
+                ?: return PhraseImport.Failure(PhraseImport.Reason.MISSING_TEXT, index + 1)
         }
         return PhraseImport.Success(phrases.distinct())
     }
@@ -47,7 +52,20 @@ object PhraseFileParser {
             else -> null to null
         }
         val cleaned = text?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-        return Phrase(cleaned, author?.trim().orEmpty())
+        val theme = (item as? JsonObject)?.string("theme")
+        return Phrase(cleaned, author?.trim().orEmpty(), theme?.trim().orEmpty())
+    }
+
+    /** Genre de la phrase ; nul si la valeur n'est pas reconnue. Absent : neutre. */
+    private fun genderOf(item: kotlinx.serialization.json.JsonElement): PhraseGender? {
+        val value = (item as? JsonObject)?.string("genre")?.trim()?.lowercase(java.util.Locale.ROOT)
+            ?: return PhraseGender.NEUTRAL
+        return when (value) {
+            "", "neutre" -> PhraseGender.NEUTRAL
+            "masculin" -> PhraseGender.MASCULINE
+            "féminin", "feminin" -> PhraseGender.FEMININE
+            else -> null
+        }
     }
 
     private fun JsonObject.string(key: String): String? =

@@ -4,6 +4,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -36,6 +37,25 @@ private fun grotesk(weight: Int) = Font(
     resId = R.font.space_grotesk,
     weight = FontWeight(weight),
     variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
+)
+
+private fun nunitoItalic(weight: Int) = Font(
+    resId = R.font.nunito_italic,
+    weight = FontWeight(weight),
+    style = FontStyle.Italic,
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
+)
+
+/** Nunito italique, réservée aux phrases (demande du 2026-10-15). Licence OFL 1.1. */
+val PhraseFamily = FontFamily(nunitoItalic(400), nunitoItalic(600))
+
+/**
+ * Une phrase de l'historique : plus petite que les titres, en Nunito italique — une
+ * pensée qu'on lit, pas un titre de section.
+ */
+val PhraseStyle = TextStyle(
+    fontFamily = PhraseFamily, fontWeight = FontWeight(400), fontStyle = FontStyle.Italic,
+    fontSize = 16.sp, lineHeight = 23.sp,
 )
 
 val DisplayFamily = FontFamily(cormorant(300), cormorant(400), cormorant(500), cormorant(600))

@@ -67,4 +67,49 @@ class FilePhraseRepositoryTest {
         assertEquals(first, daily.ofToday().first())
         assertEquals(1, repo.journal.first().size)
     }
+
+    @Test
+    fun `changer de genre remplace la phrase du jour, pas celle des jours passes`() = runTest {
+        val repo = repository()
+        val fier = Phrase("Fier", gender = PhraseGender.MASCULINE)
+        val fiere = Phrase("Fière", gender = PhraseGender.FEMININE)
+        repo.replacePhrases(listOf(fier, fiere))
+        repo.record(day.minusDays(1), fier)
+        val wishes = kotlinx.coroutines.flow.MutableStateFlow(PhraseWishes(ReaderGender.MASCULINE))
+        val daily = DailyPhrase(repo, wishes) { day }
+        assertEquals(fier, daily.ofToday().first())
+        wishes.value = PhraseWishes(ReaderGender.FEMININE)
+        assertEquals(fiere, daily.ofToday().first())
+        assertEquals(fiere, repo.journal.first()[day])
+        assertEquals(fier, repo.journal.first()[day.minusDays(1)])
+    }
+
+    @Test
+    fun `favoris ajoutes, relus, retires, et gardes apres un import`() = runTest {
+        val repo = repository()
+        repo.replacePhrases(listOf(Phrase("A"), Phrase("B")))
+        repo.toggleFavorite(Phrase("A"))
+        repo.toggleFavorite(Phrase("B"))
+        assertEquals(listOf(Phrase("B"), Phrase("A")), repository().favorites.first())
+
+        repo.replacePhrases(listOf(Phrase("C")))
+        assertEquals(listOf(Phrase("B"), Phrase("A")), repo.favorites.first())
+
+        repo.toggleFavorite(Phrase("B"))
+        assertEquals(listOf(Phrase("A")), repo.favorites.first())
+    }
+
+    @Test
+    fun `changer de genre ne remplace jamais une phrase neutre`() = runTest {
+        val repo = repository()
+        val neutre = Phrase("Neutre")
+        repo.replacePhrases(listOf(neutre, Phrase("Fier", gender = PhraseGender.MASCULINE)))
+        val wishes = kotlinx.coroutines.flow.MutableStateFlow(PhraseWishes(ReaderGender.OTHER))
+        val daily = DailyPhrase(repo, wishes) { day }
+        assertEquals(neutre, daily.ofToday().first())
+        listOf(ReaderGender.MASCULINE, ReaderGender.OTHER, ReaderGender.FEMININE).forEach { gender ->
+            wishes.value = PhraseWishes(gender)
+            assertEquals(neutre, daily.ofToday().first())
+        }
+    }
 }

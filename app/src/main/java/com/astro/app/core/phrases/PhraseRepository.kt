@@ -15,9 +15,21 @@ interface PhraseRepository {
     /** La phrase montrée chaque jour, depuis le premier import. */
     val journal: Flow<Map<LocalDate, Phrase>>
 
+    /**
+     * Phrases mises en favori, la plus récente en premier. Gardées entières : un nouvel
+     * import qui retire une phrase de la liste ne la retire pas des favoris.
+     */
+    val favorites: Flow<List<Phrase>>
+
+    /** Ajoute la phrase aux favoris, ou l'en retire si elle y est (même texte). */
+    suspend fun toggleFavorite(phrase: Phrase)
+
     /** Remplace toute la liste : le fichier importé fait référence. Le journal reste. */
     suspend fun replacePhrases(phrases: List<Phrase>)
 
-    /** Inscrit la phrase d'une journée, si elle ne l'est pas déjà. */
-    suspend fun record(date: LocalDate, phrase: Phrase)
+    /**
+     * Inscrit la phrase d'une journée, si elle ne l'est pas déjà — ou la remplace si
+     * [replace] : seule la journée en cours l'est, quand ses préférences ont changé.
+     */
+    suspend fun record(date: LocalDate, phrase: Phrase, replace: Boolean = false)
 }

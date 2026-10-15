@@ -527,6 +527,7 @@ et transparaît derrière la barre de navigation. Sa valeur suit `AstroNightPale
 
 ### Typographie
 
+- **Nunito** (italique) — phrases de l'historique et des favoris, depuis le 2026-10-15.
 - **Cormorant Garamond** — titres. Serif à fort contraste, évoque les planches
   d'astronomie anciennes. Réservé aux grandes tailles : ses déliés sont fragiles en petit corps.
 - **Space Grotesk** — interface et texte courant. Grotesque moderne, dessiné pour l'écran.
@@ -817,6 +818,31 @@ anglais ; Echoes, Kaamelott : tirage au hasard ; Quotable : hors service — tes
   dépendant de la date ; toutes passent avant qu'une revienne. Inscrite au **journal**
   la première fois qu'elle est demandée, pour la journée en cours seulement ; une journée
   inscrite ne change plus, même après un nouvel import. L'historique = le journal.
+- **Thème et genre** (2026-10-13, demandé par l'utilisateur) : chaque phrase porte
+  `"theme"` (texte libre) et `"genre"` (`neutre` par défaut, `masculin`, `féminin` ;
+  toute autre valeur fait refuser le fichier). L'utilisateur déclare sur la page Phrases
+  (menu ouvert par un **cercle fin légèrement brillant** à côté du titre — pas trois
+  traits, demande du 2026-10-15 ; `AstroScreen(action = …)`, `MenuButton`). Le cercle a
+  la hauteur des capitales du titre (26 dp, mesuré) et le même centre ; il est sur la
+  colonne des étoiles de favori, au bord droit s'il veut des phrases au **masculin**, au **féminin** ou
+  **autre**, et ses **thèmes** (« Tous » par défaut). `PhraseAudience` (pur, testé) :
+  neutre pour tous ; masculin / féminin pour qui l'a déclaré ; « autre » ou non
+  renseigné → neutre seulement. Dans le menu, **« Autre » est toujours allumé** (choix de
+  l'utilisateur du 2026-10-15) : Masculin ou Féminin s'y ajoutent, un second appui les
+  retire. Changer de genre ou de thème remplace la phrase du
+  jour si elle ne convient plus — aujourd'hui seulement ; un simple réimport, non.
+  Clés `phrases_reader_gender`, `phrases_themes`.
+- Fichier de l'utilisateur (2026-10-13) : `Téléchargements/phrases_astro.json`, 345
+  phrases (344 après import : le CSV contient un doublon exact) = les 275 de `phrases_mindset.csv` (thème et genre d'origine) + les 70 de
+  `phrases.md`, **classées par l'assistant** dans les 8 thèmes du CSV (à faire valider),
+  texte repris tel quel. Construit par un script, hors dépôt. `phrases.md` et
+  `phrases*.json` sont dans `.gitignore` : dépôt public.
+- **Page Phrases (2026-10-15)** : seulement les phrases déjà montrées, la plus récente en
+  premier, **sans date**, en **Nunito italique** (16 sp, `PhraseStyle`, fichier
+  `res/font/nunito_italic.ttf`, OFL dans `assets/licenses`). Une étoile par phrase la
+  met en **favori** (`favoris.json`, phrase gardée entière : un réimport ne retire pas un
+  favori). Le menu a trois onglets : « Mes phrases » (genre, thèmes), « Favoris »,
+  « Ma liste » (import — retiré de la page à la demande de l'utilisateur).
 - Stockage : `files/phrases/phrases.json` et `journal.json` (`JsonFileStore` : écriture
   atomique, fichier illisible mis de côté en `.illisible` au lieu d'être écrasé).
 - Capsule de l'accueil : la phrase **rétrécit** (14 sp minimum) dans une hauteur bornée
@@ -869,10 +895,16 @@ l'utilisateur, sur son téléphone.
 
 ## 7. Vérification
 
+Piège (2026-10-13) : un émulateur repris d'un instantané peut figer son rendu (« hanging
+thread QEMU2 main loop » dans son journal). Symptômes : écran noir ou image figée,
+appuis apparemment ignorés — dans TOUTES les applications, Horloge comprise. Vérifier
+une autre application avant de soupçonner Astro ; relancer avec `-no-snapshot-load`.
+
+
 Compilation (depuis WSL), **commande vérifiée le 2026-09-06** :
 `cmd.exe /c "cd /d C:\Users\cgill\astro && gradlew.bat assembleDebug"`
 
-Dernier résultat constaté (2026-10-11, phrases et manifestations : **243 tests**, 0 échec). Résultat du 2026-10-10 (planning en lignes) : `assembleDebug` et
+Dernier résultat constaté (2026-10-13, thème et genre des phrases : **256 tests**, 0 échec ; menu, Nunito et favoris du 2026-10-15). Résultat du 2026-10-11 : 243 tests. Résultat du 2026-10-10 (planning en lignes) : `assembleDebug` et
 `testDebugUnitTest` en `BUILD SUCCESSFUL`, **211 tests unitaires, 0 échec, 0 erreur,
 0 ignoré** (après le réveil sur J+1) ; fichier source le plus long = 143 lignes (`SettingsScreen.kt`).
 

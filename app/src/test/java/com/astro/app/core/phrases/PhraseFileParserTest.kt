@@ -47,4 +47,27 @@ class PhraseFileParserTest {
         assertEquals(PhraseImport.Failure(Reason.NOT_A_LIST), PhraseFileParser.parse("""{"texte":"A"}"""))
         assertEquals(PhraseImport.Failure(Reason.EMPTY), PhraseFileParser.parse("[]"))
     }
+
+    @Test
+    fun `theme et genre sont lus, genre neutre par defaut`() {
+        val result = PhraseFileParser.parse(
+            """[{"texte":"A","theme":" Paix ","genre":"Féminin"},{"texte":"B","genre":"feminin"},{"texte":"C"}]""",
+        ) as PhraseImport.Success
+        assertEquals(
+            listOf(
+                Phrase("A", theme = "Paix", gender = PhraseGender.FEMININE),
+                Phrase("B", gender = PhraseGender.FEMININE),
+                Phrase("C"),
+            ),
+            result.phrases,
+        )
+    }
+
+    @Test
+    fun `un genre inconnu fait tout refuser`() {
+        assertEquals(
+            PhraseImport.Failure(Reason.UNKNOWN_GENDER, 2),
+            PhraseFileParser.parse("""[{"texte":"A"},{"texte":"B","genre":"homme"}]"""),
+        )
+    }
 }

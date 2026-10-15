@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Phrases personnelles de l'utilisateur : jamais sur le dépôt public.
+phrases.md
+phrases*.json

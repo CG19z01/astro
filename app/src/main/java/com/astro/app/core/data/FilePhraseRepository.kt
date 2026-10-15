@@ -37,7 +37,19 @@ class FilePhraseRepository(
         File(directory, "journal.json"), ListSerializer(JournalLine.serializer()), emptyList(), io,
     )
 
+    private val favoriteStore = JsonFileStore(
+        File(directory, "favoris.json"), ListSerializer(Phrase.serializer()), emptyList(), io,
+    )
+
     override val phrases: Flow<List<Phrase>> = phraseStore.data
+
+    override val favorites: Flow<List<Phrase>> = favoriteStore.data
+
+    override suspend fun toggleFavorite(phrase: Phrase) {
+        favoriteStore.update { list ->
+            if (list.any { it.text == phrase.text }) list.filterNot { it.text == phrase.text } else listOf(phrase) + list
+        }
+    }
 
     override val journal: Flow<Map<LocalDate, Phrase>> = journalStore.data.map { lines ->
         lines.mapNotNull { line ->
@@ -49,10 +61,14 @@ class FilePhraseRepository(
         phraseStore.update { phrases }
     }
 
-    override suspend fun record(date: LocalDate, phrase: Phrase) {
+    override suspend fun record(date: LocalDate, phrase: Phrase, replace: Boolean) {
         val key = date.toString()
         journalStore.update { lines ->
-            if (lines.any { it.date == key }) lines else lines + JournalLine(key, phrase)
+            when {
+                lines.none { it.date == key } -> lines + JournalLine(key, phrase)
+                replace -> lines.map { if (it.date == key) JournalLine(key, phrase) else it }
+                else -> lines
+            }
         }
     }
 }

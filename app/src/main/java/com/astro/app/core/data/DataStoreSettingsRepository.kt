@@ -6,12 +6,14 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.emptyPreferences
 import com.astro.app.core.config.AlarmConfig
 import com.astro.app.core.config.CalendarConfig
 import com.astro.app.core.config.FeatureCatalog
 import com.astro.app.core.config.PlanningConfig
 import com.astro.app.core.config.FeatureId
+import com.astro.app.core.phrases.ReaderGender
 import com.astro.app.core.settings.FeatureStates
 import com.astro.app.core.settings.SettingsRepository
 import com.astro.app.core.settings.UserPreferences
@@ -35,6 +37,8 @@ private val SHOW_PLANNING_MARKERS = booleanPreferencesKey("calendar_show_plannin
 private val UNTIMED_NOTES_FIRST = booleanPreferencesKey("home_untimed_notes_first")
 private val SHOW_NEXT_ALARM = booleanPreferencesKey("home_show_next_alarm")
 private val SPEECH_VOICE = stringPreferencesKey("speech_voice_name")
+private val READER_GENDER = stringPreferencesKey("phrases_reader_gender")
+private val PHRASE_THEMES = stringSetPreferencesKey("phrases_themes")
 
 /**
  * Implémentation locale de [SettingsRepository], adossée à DataStore Preferences.
@@ -78,6 +82,8 @@ class DataStoreSettingsRepository(
             stored[UNTIMED_NOTES_FIRST] = updated.untimedNotesFirst
             stored[SHOW_NEXT_ALARM] = updated.showNextAlarm
             updated.speechVoiceName?.let { stored[SPEECH_VOICE] = it } ?: stored.remove(SPEECH_VOICE)
+            updated.readerGender?.let { stored[READER_GENDER] = it.name } ?: stored.remove(READER_GENDER)
+            stored[PHRASE_THEMES] = updated.phraseThemes
         }
     }
 
@@ -99,6 +105,8 @@ class DataStoreSettingsRepository(
         untimedNotesFirst = stored[UNTIMED_NOTES_FIRST] ?: PlanningConfig.DEFAULT_UNTIMED_FIRST,
         showNextAlarm = stored[SHOW_NEXT_ALARM] ?: AlarmConfig.DEFAULT_SHOW_NEXT_ALARM,
         speechVoiceName = stored[SPEECH_VOICE],
+        readerGender = ReaderGender.entries.firstOrNull { it.name == stored[READER_GENDER] },
+        phraseThemes = stored[PHRASE_THEMES].orEmpty(),
     )
 
     private fun readStored(preferences: Preferences): Map<FeatureId, Boolean> =

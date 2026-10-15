@@ -142,13 +142,12 @@
     <string name="settings_calendar_markers">Jours renseignés</string>
     <string name="settings_calendar_markers_hint">Une bulle marque chaque jour dont le planning contient du texte.</string>
     <!-- Phrases (2026-10-11) : fichier écrit et importé par l'utilisateur. -->
-    <string name="phrases_list_title">Ma liste</string>
     <string name="phrases_list_empty">Aucune liste importée</string>
     <plurals name="phrases_count">
         <item quantity="one">%d phrase</item>
         <item quantity="other">%d phrases</item>
     </plurals>
-    <string name="phrases_format_hint">Fichier JSON : une liste de { \"texte\": \"…\", \"auteur\": \"…\" } — l\'auteur est facultatif. Importer remplace la liste ; l\'historique est conservé.</string>
+    <string name="phrases_format_hint">Un fichier JSON écrit par vous : texte, auteur, thème et genre de chaque phrase. L\'importer remplace la liste ; l\'historique et les favoris restent.</string>
     <string name="phrases_import">Importer un fichier</string>
     <plurals name="phrases_imported">
         <item quantity="one">%d phrase importée.</item>
@@ -159,6 +158,20 @@
     <string name="phrases_error_not_json">Ce fichier n\'est pas du JSON valide.</string>
     <string name="phrases_error_not_list">Le fichier doit contenir une liste, entre [ et ].</string>
     <string name="phrases_error_empty">La liste est vide.</string>
+    <string name="phrases_error_unknown_gender">La phrase n° %1$d a un genre inconnu (neutre, masculin ou féminin). Rien n\'a été importé.</string>
+    <string name="phrases_menu">Menu des phrases : genre, thèmes, favoris, liste</string>
+    <string name="phrases_tab_wishes">Mes phrases</string>
+    <string name="phrases_tab_favorites">Favoris</string>
+    <string name="phrases_tab_list">Ma liste</string>
+    <string name="phrases_favorite">Favori</string>
+    <string name="phrases_favorites_empty">Aucun favori. Touchez l\'étoile d\'une phrase pour l\'ajouter ici.</string>
+    <string name="phrases_gender_question">Les phrases s\'adressent à moi au…</string>
+    <string name="phrases_gender_masculine">Masculin</string>
+    <string name="phrases_gender_feminine">Féminin</string>
+    <string name="phrases_gender_other">Autre</string>
+    <string name="phrases_gender_hint">« Autre » est toujours inclus. Touchez Masculin ou Féminin pour y ajouter ces phrases, une seconde fois pour les retirer.</string>
+    <string name="phrases_themes_question">Thèmes</string>
+    <string name="phrases_themes_all">Tous</string>
     <string name="phrases_error_missing_text">La phrase n° %1$d n\'a pas de texte. Rien n\'a été importé.</string>
     <!-- Manifestations (2026-10-11). -->
     <string name="manifestation_add">Nouvelle manifestation</string>
