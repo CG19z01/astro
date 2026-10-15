@@ -488,8 +488,8 @@ L'ambiance n'est pas un réglage d'écran : elle est **déclarée dans le catalo
 
 | Ambiance | Pages | Palette |
 |---|---|---|
-| `DARK` | Home, Calendrier, Paramètres, Astrologie, Phrases | `AstroNightPalette` — « Nuit profonde » |
-| `LIGHT` | Manifestation | `AstroDawnPalette` — « Aube céleste » |
+| `DARK` | Toutes : Home, Calendrier, Paramètres, Astrologie, Phrases, Manifestation | `AstroNightPalette` — « Nuit profonde » |
+| `LIGHT` | Aucune depuis le 2026-10-15 (Manifestation passée en sombre, demande de l'utilisateur) | `AstroDawnPalette` — « Aube céleste », conservée dans le design system |
 
 Astrologie et Phrases sont passées en `DARK` le 2026-10-10 (« même arrière-plan que le
 Calendrier ») : le fond étant choisi par l'ambiance, c'est la seule façon de le

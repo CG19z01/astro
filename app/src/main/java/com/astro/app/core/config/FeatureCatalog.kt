@@ -74,7 +74,9 @@ object FeatureCatalog {
             // Accessible par le dodécaèdre sur la Home, pas par la barre du bas.
             // C'est ce qui donne 5 boutons pour 6 pages, conformément à la maquette.
             inBottomBar = false,
-            ambiance = Ambiance.LIGHT,
+            // Sombre, comme les autres pages (demande du 2026-10-15) : plus aucune page
+            // n'utilise l'ambiance claire, qui reste disponible dans le design system.
+            ambiance = Ambiance.DARK,
         ),
         FeatureDefinition(
             id = FeatureId.PLANNING,

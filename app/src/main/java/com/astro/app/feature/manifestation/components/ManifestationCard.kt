@@ -1,6 +1,7 @@
 package com.astro.app.feature.manifestation.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -19,7 +20,10 @@ import com.astro.app.core.manifestation.Manifestation
 fun ManifestationCard(manifestation: Manifestation, untitled: String, onClick: () -> Unit) {
     val palette = AstroTheme.palette
     val dimens = AstroTheme.dimens
-    AstroCard(modifier = Modifier.clip(RoundedCornerShape(dimens.radiusLg)).clickable(onClick = onClick)) {
+    // Pleine largeur : sans cela, une carte au texte court se rétrécissait (constaté).
+    AstroCard(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(dimens.radiusLg)).clickable(onClick = onClick),
+    ) {
         if (manifestation.subject.isNotBlank()) SectionLabel(text = manifestation.subject)
         Text(
             text = manifestation.title.ifBlank { untitled },
